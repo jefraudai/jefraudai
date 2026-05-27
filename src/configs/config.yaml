@@ -1,0 +1,37 @@
+# Configuration du projet MLOps Enedis
+
+# Chemins données
+data:
+  raw_path: "data/raw/"
+  processed_path: "data/processed/"
+  # Colonnes à supprimer avant split / prétraitement
+  # Dob peut être transformé en tranche d'age
+  # city, state, zip peuvent être utilisés pour créer des features géographiques (non privilégiées car lat et long sont plus précises)
+  # drop_columns: [merchant, first, last, street, trans_num, unix_time, dob, city, state, zip]
+  # zip peut être utilisé pour créer des features géographiques (plutot que lat et long)
+  drop_columns: [cc_num, merchant, first, last, street, trans_num, unix_time, dob, city, state, lat, long, merch_lat, merch_long]
+  # drop_columns: [zip, city_pop, trans_date_trans_time, category, gender, job, cc_num, merchant, first, last, street, trans_num, unix_time, dob, city, state, lat, long, merch_lat, merch_long]
+  target_column: "is_fraud"
+
+# Paramètres modèle
+model:
+  test_size: 0.2
+  random_state: 42
+  model_type: "auto_gluon"
+  
+# Paramètres entraînement
+training:
+  epochs: 100
+  batch_size: 32
+  learning_rate: 0.001
+
+# MLflow
+mlflow:
+  tracking_uri: "https://jenedai-mlflow.hf.space/"
+  experiment_name: "Fraud_Detection"
+  
+# Evidently AI
+monitoring:
+  reference_data_path: "data/processed/reference.csv"
+  dashboard_path: "outputs/evidently_dashboard.html"
+  report_path: "outputs/evidently_report.html"
