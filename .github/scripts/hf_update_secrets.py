@@ -64,7 +64,8 @@ def get_service_secrets(service):
         "JupyterLab": ["JUPYTER_TOKEN", "NEON_POSTGRES_URI"],
         "Streamlit": ["NEON_POSTGRES_URI"],
         "n8n": ["N8N_ENCRYPTION_KEY", "DB_TYPE", "DB_POSTGRESDB_USER", "DB_POSTGRESDB_PASSWORD", "DB_POSTGRESDB_HOST", "DB_POSTGRESDB_PORT", "DB_POSTGRESDB_DATABASE"],
-        "Producer": ["KAFKA_PASSWORD"]
+        "Producer": ["KAFKA_PASSWORD"],
+        "consumer": ["KAFKA_PASSWORD", "POSTGRES_URI"]
     }
     
     secrets = {}

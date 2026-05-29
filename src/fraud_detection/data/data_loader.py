@@ -3,15 +3,9 @@ Chargement et préparation des données
 """
 import pandas as pd
 import numpy as np
-import yaml
 from pathlib import Path
 
-
-def load_config(config_path="configs/config.yaml"):
-    """Charge la configuration depuis le fichier YAML"""
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-    return config
+from fraud_detection.configuration import load_config
 
 
 def load_data(file_path):

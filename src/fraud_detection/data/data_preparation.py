@@ -10,6 +10,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 
+from fraud_detection.data.data_transformer import transform_date_columns
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -117,65 +119,6 @@ def get_feature_names(preprocessor, numeric_features, categorical_features):
     return feature_names
 
 
-def transform_date_columns(data, drop_original=True):
-    """
-    Détecte et transforme automatiquement les colonnes dates.
-    
-    Paramètres:
-    -----------
-    df : pandas.DataFrame
-    drop_original : bool
-        Supprime les colonnes datetime originales après transformation
-    
-    Retour:
-    --------
-    DataFrame transformé
-    """
-
-    data = data.copy()
-
-    # Détection automatique des colonnes potentiellement datetime
-    for col in data.columns:
-        try:
-            converted = pd.to_datetime(data[col], format="%Y-%m-%d %H:%M:%S",errors='coerce')
-
-            # Vérifie qu'il y a au moins quelques vraies dates
-            if converted.notna().sum() > 0:
-                data[col] = converted
-
-        except:
-            continue
-
-    # Colonnes datetime détectées
-    datetime_cols = data.select_dtypes(include=['datetime64[ns]']).columns
-
-    # Transformation
-    for col in datetime_cols:
-        #data[f"{col}_year"] = data[col].dt.year
-        data[f"{col}_month"] = data[col].dt.month
-        #data[f"{col}_day"] = data[col].dt.day
-        data[f"{col}_hour"] = data[col].dt.hour
-        #data[f"{col}_minute"] = data[col].dt.minute
-        data[f"{col}_weekday"] = data[col].dt.weekday
-
-        # Weekend
-        data[f"{col}_is_weekend"] = (
-            data[col].dt.weekday >= 5
-        ).astype(int)
-
-    # Affichage debug : colonnes créées
-    if len(datetime_cols) > 0:
-        print(f"Colonnes datetime transformées: {list(datetime_cols)}")
-        print("Colonnes ajoutées:", [c for c in data.columns if any(c.startswith(f'{col}_') for col in datetime_cols)])
-        print("Aperçu après transformation:")
-        print(data.head(2))
-
-    # Supprimer colonnes originales
-    if drop_original:
-        data.drop(columns=datetime_cols, inplace=True)
-
-    return data
-
 
 def prepare_data(X_train, X_test, numeric_features=None, categorical_features=None, autogluon=False):
     """
@@ -273,24 +216,33 @@ def prepare_data(X_train, X_test, numeric_features=None, categorical_features=No
     return result
 
 
-def transform_new_data(X_new, preprocessor):
+def transform_new_data(X_new, preprocessor, drop_columns=None, strip_columns=True):
     """
-    Transforme de nouvelles données avec un preprocessor déjà configuré
-    
+    Transforme de nouvelles données avec un preprocessor déjà configuré.
+
     Args:
         X_new: Nouvelles données à transformer
         preprocessor: ColumnTransformer déjà fitted
-    
+        drop_columns: liste de colonnes à supprimer avant transformation
+        strip_columns: bool, si True nettoie les noms de colonnes
+
     Returns:
-        array: Données transformées
+        array or DataFrame: Données transformées
     """
-    # Si aucun preprocessor (ex: mode AutoGluon), retourner DataFrame minimalement transformé
+    X_new_p = X_new.copy()
+
+    if strip_columns:
+        X_new_p.columns = X_new_p.columns.str.strip()
+
+    if drop_columns:
+        X_new_p = X_new_p.drop(columns=[col for col in drop_columns if col in X_new_p.columns], errors='ignore')
+
+    X_new_p = transform_date_columns(X_new_p, drop_original=True)
+
     if preprocessor is None:
         logger.info("✓ Aucun preprocessor fourni — mode AutoGluon, retourne DataFrame après transformations légères")
-        X_new_p = X_new.copy()
-        X_new_p = transform_date_columns(X_new_p, drop_original=True)
         return X_new_p
 
-    X_new_transformed = preprocessor.transform(X_new)
+    X_new_transformed = preprocessor.transform(X_new_p)
     logger.info(f"✓ Nouvelles données transformées: {X_new_transformed.shape}")
     return X_new_transformed

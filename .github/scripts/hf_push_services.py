@@ -73,6 +73,15 @@ def push_service_to_hf(api, service, username):
             service_env_path = service_path / ".env"
             shutil.copy2(env_file, service_env_path)
             print(f"[*] Copied .env to {service}")
+
+        # Copier le répertoire src dans le dossier service avant upload
+        src_dir = repo_root / "src"
+        service_src_path = service_path / "src"
+        if src_dir.exists():
+            if service_src_path.exists():
+                shutil.rmtree(service_src_path)
+            shutil.copytree(src_dir, service_src_path)
+            print(f"[*] Copied src to {service}")
         
         space_id = f"{username}/{service}"
         
@@ -84,10 +93,13 @@ def push_service_to_hf(api, service, username):
             commit_message=f"Update {service} from repository"
         )
         
-        # Nettoyer: supprimer le .env copié localement (ne pas le commiter)
+        # Nettoyer: supprimer le .env et le src copiés localement (ne pas les commiter)
         service_env_path = service_path / ".env"
         if service_env_path.exists():
             service_env_path.unlink()
+
+        if service_src_path.exists():
+            shutil.rmtree(service_src_path)
         
         print(f"[OK] '{service}' pushed to HuggingFace Space")
         return True

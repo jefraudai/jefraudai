@@ -19,11 +19,12 @@ dependencies = [
     "python-dotenv",
     "ipykernel"
 ]
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages]
-find = { where = ["src"], include = ["fraud_detection*"] }
+find = { where = ["src"], include = ["fraud_detection*", "resend_client*"] }
 
 [project.optional-dependencies]
 dev = [

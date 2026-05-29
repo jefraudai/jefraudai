@@ -5,8 +5,8 @@ import logging
 from pathlib import Path
 from fraud_detection.data.data_loader import load_data, split_data, load_config
 from fraud_detection.data.data_validator import validate_data_quality, create_data_validation_report
-from fraud_detection.data.data_preparation import prepare_data, transform_date_columns, detect_feature_types, transform_new_data
-from fraud_detection.data.data_transformer import drop_columns
+from fraud_detection.data.data_preparation import prepare_data
+from fraud_detection.data.data_transformer import clean_data
 from fraud_detection.models.model import train_model, evaluate_model
 from fraud_detection.monitoring.performance_monitor import (
     run_monitoring,
@@ -81,28 +81,11 @@ class MLPipeline:
             logger.error("Pas de données à transformer")
             return False
         try:
-
-            # 3. Suppression des colonnes indésirables (config)
-            self.data = drop_columns(
+            self.data = clean_data(
                 self.data,
-                self.config.get('data', {}).get('drop_columns', [])
+                columns_to_drop=self.config.get('data', {}).get('drop_columns', [])
             )
-            logger.info("✓ Colonnes indésirables supprimées")
-
-            # 1. Supprimer les colonnes sans nom (nom vide ou None)
-            cols_to_drop = [col for col in self.data.columns if not col or str(col).strip() == '' or str(col).lower().startswith('unnamed')]
-            if cols_to_drop:
-                logger.info(f"Suppression des colonnes sans nom: {cols_to_drop}")
-                self.data.drop(columns=cols_to_drop, inplace=True)
-
-            # 2. Transformation des colonnes date (format 2020-06-21 12:14:25)
-            self.data = transform_date_columns(self.data)
-            logger.info("✓ Colonnes de dates transformées")
-
-            # 3. Nettoyage des noms de colonnes (strip)
-            self.data.columns = self.data.columns.str.strip()
-
-
+            logger.info("✓ Données nettoyées et transformées")
             return True
         except Exception as e:
             logger.error(f"Erreur lors de la transformation des données: {e}")
