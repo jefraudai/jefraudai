@@ -65,7 +65,7 @@ def get_service_secrets(service):
         "Streamlit": ["NEON_POSTGRES_URI"],
         "n8n": ["N8N_ENCRYPTION_KEY", "DB_TYPE", "DB_POSTGRESDB_USER", "DB_POSTGRESDB_PASSWORD", "DB_POSTGRESDB_HOST", "DB_POSTGRESDB_PORT", "DB_POSTGRESDB_DATABASE"],
         "Producer": ["KAFKA_PASSWORD"],
-        "consumer": ["KAFKA_PASSWORD", "POSTGRES_URI"]
+        "consumer": ["KAFKA_PASSWORD", "POSTGRES_URI", "MLFLOW_POSTGRES_URI", "MLFLOW_S3_ENDPOINT_URL"]
     }
     
     secrets = {}
