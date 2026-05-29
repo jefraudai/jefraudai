@@ -6,6 +6,8 @@ import mlflow
 import mlflow.sklearn
 import numpy as np
 
+from fraud_detection.configuration import get_mlflow_config
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -13,22 +15,39 @@ logger = logging.getLogger(__name__)
 class InferenceModel:
     """Classe pour charger et utiliser un modèle en production"""
     
-    def __init__(self, mlflow_tracking_uri, experiment_name):
+    def __init__(
+        self,
+        mlflow_tracking_uri=None,
+        experiment_name=None,
+        config_path=None,
+    ):
         """
-        Initialise la connexion MLflow
+        Initialise la connexion MLflow en utilisant la configuration.
         
         Args:
-            mlflow_tracking_uri: URI du serveur MLflow
-            experiment_name: Nom de l'expérience MLflow
+            mlflow_tracking_uri: URI du serveur MLflow (optionnel)
+            experiment_name: Nom de l'expérience MLflow (optionnel)
+            config_path: Chemin vers le fichier de configuration YAML (optionnel)
         """
+        if mlflow_tracking_uri is None or experiment_name is None:
+            mlflow_config = get_mlflow_config(config_path=config_path)
+            mlflow_tracking_uri = mlflow_tracking_uri or mlflow_config.get("tracking_uri")
+            experiment_name = experiment_name or mlflow_config.get("experiment_name")
+
+        if not mlflow_tracking_uri:
+            raise ValueError(
+                "Le paramètre 'mlflow_tracking_uri' est requis. "
+                "Vérifiez la configuration MLflow ou fournissez-le explicitement."
+            )
+
         self.mlflow_tracking_uri = mlflow_tracking_uri
         self.experiment_name = experiment_name
         self.model = None
         self.model_version = None
         
-        mlflow.set_tracking_uri(mlflow_tracking_uri)
-        mlflow.set_experiment(experiment_name)
-        logger.info(f"MLflow connecté à {mlflow_tracking_uri}")
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+        mlflow.set_experiment(self.experiment_name)
+        logger.info(f"MLflow connecté à {self.mlflow_tracking_uri}")
     
     def load_production_model(self, model_name, alias_prod="prod"):
         """
