@@ -54,6 +54,7 @@ def get_mlflow_config(config=None, config_path=None):
 
     return {
         "tracking_uri": get_config_value(config, "mlflow.tracking_uri", env_var="MLFLOW_TRACKING_URI"),
-        "experiment_name": get_config_value(config, "mlflow.experiment_name", env_var="MLFLOW_EXPERIMENT_NAME", default="fraud_detection"),
+        "experiment_name": get_config_value(config, "mlflow.experiment_name", env_var="MLFLOW_EXPERIMENT_NAME", default="experiment"),
+        "model_name": get_config_value(config, "mlflow.model_name", env_var="MLFLOW_MODEL_NAME", default="model"),
         "prod_alias": get_config_value(config, "mlflow.prod_alias", env_var="MLFLOW_PROD_ALIAS", default="prod"),
     }

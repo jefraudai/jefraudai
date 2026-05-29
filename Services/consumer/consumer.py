@@ -31,9 +31,9 @@ KAFKA_TOPIC_IN          = os.getenv("KAFKA_TOPIC_IN")
 KAFKA_TOPIC_OUT         = os.getenv("KAFKA_TOPIC_OUT")
 MLFLOW_TRACKING_URI     = mlflow_config.get("tracking_uri")
 MLFLOW_MODEL_URI        = os.getenv("MLFLOW_MODEL_URI")
-MLFLOW_MODEL_NAME       = os.getenv("MLFLOW_MODEL_NAME")
+MLFLOW_MODEL_NAME       = os.getenv("MLFLOW_MODEL_NAME") or mlflow_config.get("model_name")
 MLFLOW_EXPERIMENT_NAME  = mlflow_config.get("experiment_name")
-MLFLOW_PROD_ALIAS       = mlflow_config.get("prod_alias")
+MLFLOW_PROD_ALIAS       = os.getenv("MLFLOW_PROD_ALIAS") or mlflow_config.get("prod_alias") or "prod"
 DB_URI                  = os.getenv("POSTGRES_URI")
 SMTP_USER               = os.getenv("SMTP_USER")
 ALERT_TO                = os.getenv("ALERT_TO")
@@ -146,7 +146,10 @@ def main():
         return
 
     print(f"[CONSUMER] Chargement du modèle MLflow '{model_name}' via alias '{MLFLOW_PROD_ALIAS}'")
-    inference_model = InferenceModel(MLFLOW_TRACKING_URI, MLFLOW_EXPERIMENT_NAME)
+    inference_model = InferenceModel(
+        mlflow_tracking_uri=MLFLOW_TRACKING_URI,
+        experiment_name=MLFLOW_EXPERIMENT_NAME,
+    )
     if not inference_model.load_production_model(model_name, alias_prod=MLFLOW_PROD_ALIAS):
         print("[CONSUMER] Échec du chargement du modèle en production")
         return

@@ -27,6 +27,8 @@ training:
 mlflow:
   tracking_uri: "https://jenedai-mlflow.hf.space/"
   experiment_name: "Fraud_Detection"
+  model_name: "fraud_detection_model"
+  prod_alias: "prod"
   
 # Evidently AI
 monitoring:

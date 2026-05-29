@@ -29,37 +29,43 @@ class InferenceModel:
             experiment_name: Nom de l'expérience MLflow (optionnel)
             config_path: Chemin vers le fichier de configuration YAML (optionnel)
         """
-        if mlflow_tracking_uri is None or experiment_name is None:
-            mlflow_config = get_mlflow_config(config_path=config_path)
-            mlflow_tracking_uri = mlflow_tracking_uri or mlflow_config.get("tracking_uri")
-            experiment_name = experiment_name or mlflow_config.get("experiment_name")
+        mlflow_config = get_mlflow_config(config_path=config_path)
 
-        if not mlflow_tracking_uri:
+        self.mlflow_tracking_uri = mlflow_tracking_uri or mlflow_config.get("tracking_uri")
+        self.experiment_name = experiment_name or mlflow_config.get("experiment_name")
+        self.default_model_name = mlflow_config.get("model_name")
+        self.default_prod_alias = mlflow_config.get("prod_alias") or "prod"
+        self.model = None
+        self.model_version = None
+
+        if not self.mlflow_tracking_uri:
             raise ValueError(
                 "Le paramètre 'mlflow_tracking_uri' est requis. "
                 "Vérifiez la configuration MLflow ou fournissez-le explicitement."
             )
 
-        self.mlflow_tracking_uri = mlflow_tracking_uri
-        self.experiment_name = experiment_name
-        self.model = None
-        self.model_version = None
-        
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
         mlflow.set_experiment(self.experiment_name)
         logger.info(f"MLflow connecté à {self.mlflow_tracking_uri}")
     
-    def load_production_model(self, model_name, alias_prod="prod"):
+    def load_production_model(self, model_name=None, alias_prod=None):
         """
         Charge le modèle en production depuis MLflow via Alias
         
         Args:
-            model_name: Nom du modèle dans MLflow
-            alias_prod: Alias pour la production (défaut: "prod")
+            model_name: Nom du modèle dans MLflow (optionnel)
+            alias_prod: Alias pour la production (optionnel)
             
         Returns:
             Modèle chargé ou None en cas d'erreur
         """
+        model_name = model_name or self.default_model_name
+        alias_prod = alias_prod or self.default_prod_alias
+
+        if not model_name:
+            logger.error("Le nom du modèle MLflow n'est pas défini.")
+            return False
+
         try:
             # Récupérer la version avec l'alias prod
             client = mlflow.tracking.MlflowClient()
