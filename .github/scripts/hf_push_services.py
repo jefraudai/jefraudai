@@ -62,6 +62,7 @@ def push_service_to_hf(api, service, username):
     service_path = Path(__file__).parent.parent.parent / "Services" / service
     repo_root = Path(__file__).parent.parent.parent
     env_file = repo_root / ".env"
+    toml_file = repo_root / "pyproject.toml"
     
     if not service_path.exists():
         print(f"[ERR] Service directory not found: {service_path}")
@@ -73,6 +74,12 @@ def push_service_to_hf(api, service, username):
             service_env_path = service_path / ".env"
             shutil.copy2(env_file, service_env_path)
             print(f"[*] Copied .env to {service}")
+
+        # Copier pyproject.toml dans le dossier service avant upload
+        if toml_file.exists():
+            service_toml_path = service_path / "pyproject.toml"
+            shutil.copy2(toml_file, service_toml_path)
+            print(f"[*] Copied pyproject.toml to {service}")
 
         # Copier le répertoire src dans le dossier service avant upload
         src_dir = repo_root / "src"
