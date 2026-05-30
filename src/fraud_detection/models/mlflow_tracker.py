@@ -5,7 +5,6 @@ import logging
 import os
 import shutil
 import tempfile
-from urllib.parse import urlparse
 
 import mlflow
 import mlflow.sklearn
@@ -85,21 +84,17 @@ def _log_autogluon_model(model, artifact_path):
             def load_context(self, context):
                 from autogluon.tabular import TabularPredictor
 
+                # Récupérer le chemin de l'artefact fourni par MLflow
                 artifact_path = context.artifacts["ag_model"]
-                if isinstance(artifact_path, os.PathLike):
-                    artifact_path = os.fspath(artifact_path)
+                
+                # Convertir en string et normaliser le chemin
                 artifact_path = str(artifact_path)
-                artifact_path = artifact_path.replace('\\', '/')
-
-                parsed = urlparse(artifact_path)
-                if parsed.scheme == "file":
-                    artifact_path = parsed.path
-
-                normalized_path = os.path.normpath(artifact_path)
-                logger.info(
-                    f"Chargement AutoGluon depuis artefact: original={context.artifacts['ag_model']} normalized={normalized_path}"
-                )
-                self.predictor = TabularPredictor.load(normalized_path)
+                artifact_path = os.path.normpath(artifact_path)
+                
+                logger.info(f"Chargement AutoGluon depuis artefact: {artifact_path}")
+                
+                # Charger le modèle AutoGluon
+                self.predictor = TabularPredictor.load(artifact_path)
                 logger.info("AutoGluon TabularPredictor chargé depuis artefact")
 
             def predict(self, context, model_input):

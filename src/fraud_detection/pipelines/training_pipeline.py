@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class MLPipeline:
     """Pipeline complet pour le projet MLOps"""
     
-    def __init__(self, config_path="configs/config.yaml", model_name="FraudDetection_Model"):
+    def __init__(self, config_path="configs/config.yaml", model_name=None):
         """Initialise le pipeline avec la configuration"""
         self.config = load_config(config_path)
         self.data = None
@@ -34,11 +34,11 @@ class MLPipeline:
         self.metrics = {}
         
         # Gestion des stages MLflow
-        self.model_name = model_name
+        self.model_name = model_name or self.config.get('mlflow', {}).get('model_name', 'model')
         self.version_staging = None
         self.promotion_result = None
         
-        logger.info("Pipeline MLOps initialisé")
+        logger.info(f"Pipeline MLOps initialisé avec model_name={self.model_name}")
     
     def step_1_load_data(self, data_path):
         """Étape 1: Chargement des données"""
