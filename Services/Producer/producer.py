@@ -1,7 +1,9 @@
 import socket
 import os
+import time
 import requests
 import json
+from datetime import datetime
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
@@ -41,7 +43,14 @@ def fetch_transaction() -> dict | None:
           
       columns = payload["columns"]
       data    = payload["data"][0]
-      return dict(zip(columns, data))
+      transaction = dict(zip(columns, data))
+      if "trans_date_trans_time" not in transaction and "current_time" in transaction:
+          try:
+              timestamp_ms = int(transaction["current_time"])
+              transaction["trans_date_trans_time"] = datetime.utcfromtimestamp(timestamp_ms / 1000).strftime("%Y-%m-%d %H:%M:%S")
+          except Exception as e:
+              print(f"[PRODUCER] Impossible de convertir current_time en trans_date_trans_time: {e}")
+      return transaction
   except requests.exceptions.RequestException as e:
       print(f"[PRODUCER] Erreur API : {e}")
       return None

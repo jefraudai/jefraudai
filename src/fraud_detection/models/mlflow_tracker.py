@@ -1,10 +1,15 @@
 """
 Suivi des expériences avec MLflow
 """
+import logging
+import shutil
+import tempfile
+from urllib.parse import urlparse
+
 import mlflow
 import mlflow.sklearn
-import logging
-from urllib.parse import urlparse
+import mlflow.pyfunc
+from mlflow.pyfunc import PythonModel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,12 +60,45 @@ def log_metrics(metrics):
 
 
 def log_model(model, artifact_path="model"):
-    """Enregistre le modèle"""
+    """Enregistre le modèle (sklearn ou AutoGluon)"""
     try:
-        mlflow.sklearn.log_model(model, artifact_path)
+        if type(model).__name__ == "TabularPredictor":
+            _log_autogluon_model(model, artifact_path)
+        else:
+            mlflow.sklearn.log_model(model, artifact_path)
         logger.info(f"Modèle enregistré: {artifact_path}")
     except Exception as e:
         logger.error(f"Erreur lors de l'enregistrement du modèle: {e}")
+
+
+def _log_autogluon_model(model, artifact_path):
+    """Enregistre un modèle AutoGluon comme modèle pyfunc portable"""
+    temp_dir = tempfile.mkdtemp(prefix="autogluon_model_")
+    try:
+        # Sauvegarder le modèle AutoGluon
+        model.save(temp_dir)
+        logger.info(f"Modèle AutoGluon sauvegardé temporairement dans {temp_dir}")
+
+        # Définir la classe wrapper PythonModel
+        class AutoGluonPyFunc(PythonModel):
+            def load_context(self, context):
+                from autogluon.tabular import TabularPredictor
+                self.predictor = TabularPredictor.load(context.artifacts["ag_model"])
+                logger.info("AutoGluon TabularPredictor chargé depuis artefact")
+
+            def predict(self, context, model_input):
+                return self.predictor.predict(model_input)
+
+        # Enregistrer le modèle via mlflow.pyfunc
+        mlflow.pyfunc.log_model(
+            artifact_path=artifact_path,
+            python_model=AutoGluonPyFunc(),
+            artifacts={"ag_model": temp_dir},
+        )
+        logger.info("Modèle AutoGluon enregistré comme artefact pyfunc portable")
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        logger.info(f"Répertoire temporaire supprimé: {temp_dir}")
 
 
 def log_artifact(file_path, artifact_path=None):

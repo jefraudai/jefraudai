@@ -160,6 +160,10 @@ def main():
  
     consumer = Consumer({
         "bootstrap.servers":  KAFKA_BOOTSTRAP_SERVERS,
+        "security.protocol": "SASL_SSL",
+        "sasl.mechanism": "SCRAM-SHA-256",
+        "sasl.username": "consumer",
+        "sasl.password": os.environ["KAFKA_PASSWORD"],
         "group.id":           "fraud-consumer-group",
         "auto.offset.reset":  "latest",
         "enable.auto.commit": True,

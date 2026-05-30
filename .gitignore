@@ -152,9 +152,11 @@ venv.bak/
 # Jupyter Notebook outputs and models
 notebooks/outputs/
 notebooks/models/
+notebooks/AutogluonModels/
 
 # Raw data files
 data/raw/
 
 # disabled services
 services/_disabled/
+

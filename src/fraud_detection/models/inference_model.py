@@ -4,6 +4,7 @@ Gestion de l'inférence du modèle en production via MLflow
 import logging
 import mlflow
 import mlflow.sklearn
+import mlflow.pyfunc
 import numpy as np
 
 from fraud_detection.configuration import get_mlflow_config
@@ -29,6 +30,7 @@ class InferenceModel:
             experiment_name: Nom de l'expérience MLflow (optionnel)
             config_path: Chemin vers le fichier de configuration YAML (optionnel)
         """
+        
         mlflow_config = get_mlflow_config(config_path=config_path)
 
         self.mlflow_tracking_uri = mlflow_tracking_uri or mlflow_config.get("tracking_uri")
@@ -79,9 +81,21 @@ class InferenceModel:
             
             # Charger le modèle via alias
             model_uri = f"models:/{model_name}@{alias_prod}"
-            self.model = mlflow.sklearn.load_model(model_uri)
             
-            logger.info(f"Modèle {model_name} v{self.model_version} chargé via alias '{alias_prod}'")
+            # Essayer d'abord avec sklearn (compatible modèles sklearn)
+            try:
+                self.model = mlflow.sklearn.load_model(model_uri)
+                logger.info(f"Modèle {model_name} v{self.model_version} chargé via sklearn")
+            except Exception as sklearn_error:
+                # Retomber sur pyfunc (pour AutoGluon et autres modèles custom)
+                logger.warning(
+                    f"Chargement sklearn échoué ({sklearn_error}), "
+                    f"tentative chargement pyfunc pour {model_uri}"
+                )
+                self.model = mlflow.pyfunc.load_model(model_uri)
+                logger.info(f"Modèle {model_name} v{self.model_version} chargé via pyfunc")
+            
+            logger.info(f"Modèle {model_name} v{self.model_version} prêt pour l'inférence")
             return True
             
         except Exception as e:
