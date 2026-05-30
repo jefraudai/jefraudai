@@ -2,6 +2,7 @@
 Suivi des expériences avec MLflow
 """
 import logging
+import os
 import shutil
 import tempfile
 from urllib.parse import urlparse
@@ -83,7 +84,22 @@ def _log_autogluon_model(model, artifact_path):
         class AutoGluonPyFunc(PythonModel):
             def load_context(self, context):
                 from autogluon.tabular import TabularPredictor
-                self.predictor = TabularPredictor.load(context.artifacts["ag_model"])
+
+                artifact_path = context.artifacts["ag_model"]
+                if isinstance(artifact_path, os.PathLike):
+                    artifact_path = os.fspath(artifact_path)
+                artifact_path = str(artifact_path)
+                artifact_path = artifact_path.replace('\\', '/')
+
+                parsed = urlparse(artifact_path)
+                if parsed.scheme == "file":
+                    artifact_path = parsed.path
+
+                normalized_path = os.path.normpath(artifact_path)
+                logger.info(
+                    f"Chargement AutoGluon depuis artefact: original={context.artifacts['ag_model']} normalized={normalized_path}"
+                )
+                self.predictor = TabularPredictor.load(normalized_path)
                 logger.info("AutoGluon TabularPredictor chargé depuis artefact")
 
             def predict(self, context, model_input):
@@ -163,16 +179,28 @@ def register_model_version(model_name, run_id, artifact_path="model", descriptio
     try:
         client = mlflow.tracking.MlflowClient()
         model_uri = f"runs:/{run_id}/{artifact_path}"
-        
-        model_version = mlflow.register_model(
-            model_uri=model_uri,
+
+        # Create a new model version in the registry
+        model_version = client.create_model_version(
             name=model_name,
-            description=description
+            source=model_uri,
+            run_id=run_id
         )
-        
+
+        # If a description was provided, update the model version with it
+        if description:
+            try:
+                client.update_model_version(
+                    name=model_name,
+                    version=model_version.version,
+                    description=description,
+                )
+            except Exception as e_update:
+                logger.warning(f"Impossible de mettre à jour la description du modèle: {e_update}")
+
         logger.info(f"Modèle {model_name} v{model_version.version} enregistré dans le registry")
         return model_version
-        
+
     except Exception as e:
         logger.error(f"Erreur lors de l'enregistrement du modèle: {e}")
         return None
