@@ -51,7 +51,57 @@ Automatic-Fraud-Detection
               |                           |
               v                           v
    +------------------+       +-------------------+
-   | Grafana          |       | Airflow DAGs      |
-   | Monitoring       |       | ETL / QA / Report |
+   | Grafana          |       | Email             |
+   | Monitoring       |       | Notification      |
    +------------------+       +-------------------+
 
+
+
+
+
+
+# Reste à faire
+
+## À faire
+- Vérifier que les fraudes sont détectées
+
+## Amélioration Fonctionalité
+- Orchestrateur pour potentiellement relancer les services Producer et Consumer
+
+## Améliorations QA
+- Nettoyer le code
+- Tests unitaires
+- Tests d'intégration
+
+## Améliorations de code
+- Créer une classe dédiée pour Autogluon
+
+## Amélioration Infra
+- Gérer les Variables Github en plus des Secrets
+- Améliorer versioning
+- Docker Compose
+- K8s / Helm
+
+## Améliorations supplémentaires
+- Pipeline de réentraînement
+
+
+
+
+
+
+# Related Links
+
+## Cloud Accounts (JefraudAi)
+DB : https://console.neon.tech/app/projects/restless-shadow-27935644
+S3: https://supabase.com/dashboard/project/xjkkzjtjgdsmemheppgl/storage/files/buckets/mlflow-artifacts
+Kafka : https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/
+Emailing : https://resend.com/ (Jenedai Account)
+
+## Prod
+- API : https://sdacelo-real-time-fraud-detection.hf.space/
+- MLflow : https://jefraudai-mlflow.hf.space/#/models
+- Producer : https://huggingface.co/spaces/jefraudai/Producer
+- Kafka : https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/
+- Consumer : https://huggingface.co/spaces/jefraudai/consumer
+- Dashboard : https://jefraudai.grafana.net/public-dashboards/2b818560e4654e5ba8d5ae9a8a3dc72e

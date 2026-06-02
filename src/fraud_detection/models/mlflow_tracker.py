@@ -5,6 +5,8 @@ import logging
 import os
 import shutil
 import tempfile
+import time
+from pathlib import Path
 
 import mlflow
 import mlflow.sklearn
@@ -14,17 +16,37 @@ from mlflow.pyfunc import PythonModel
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+DEFAULT_ARTIFACT_DIR = Path(__file__).resolve().parents[3] / "jefraudai" / "mlflow"
 
-def set_mlflow_tracking(tracking_uri):
-    """Configure la cible de suivi MLflow"""
+
+def _ensure_artifact_location(artifact_location=None):
+    """Retourne un répertoire d'artefacts local créé si nécessaire."""
+    path = Path(artifact_location) if artifact_location is not None else DEFAULT_ARTIFACT_DIR
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def set_mlflow_tracking(tracking_uri=None, artifact_location=None):
+    """Configure la cible de suivi MLflow et le stockage local des artefacts."""
     try:
+        artifact_path = _ensure_artifact_location(artifact_location)
+        artifact_uri = artifact_path.as_uri()
+
+        if tracking_uri is None:
+            tracking_uri = artifact_uri
+
         mlflow.set_tracking_uri(tracking_uri)
+        os.environ["MLFLOW_ARTIFACT_URI"] = artifact_uri
+
         logger.info(f"Tracking URI configuré: {tracking_uri}")
+        logger.info(f"Répertoire local des artefacts configuré: {artifact_path}")
     except Exception as e:
         logger.error(f"Erreur lors de la configuration MLflow: {e}")
 
 
-def start_mlflow_run(experiment_name, run_name=None):
+def start_mlflow_run(experiment_name, run_name=None, max_retries=3, backoff_factor=2):
     """
     Démarre une nouvelle run MLflow
     
@@ -32,12 +54,27 @@ def start_mlflow_run(experiment_name, run_name=None):
         experiment_name: Nom de l'expérience
         run_name: Nom de la run (optionnel)
     """
-    try:
-        mlflow.set_experiment(experiment_name)
-        mlflow.start_run(run_name=run_name)
-        logger.info(f"Run MLflow démarrée - Expérience: {experiment_name}")
-    except Exception as e:
-        logger.error(f"Erreur lors du démarrage de la run: {e}")
+    attempt = 0
+    while attempt < max_retries:
+        try:
+            mlflow.set_experiment(experiment_name)
+            mlflow.start_run(run_name=run_name)
+            logger.info(f"Run MLflow démarrée - Expérience: {experiment_name}")
+            return True
+        except Exception as e:
+            attempt += 1
+            logger.warning(
+                f"Essai {attempt}/{max_retries} - Erreur lors du démarrage de la run: {e}"
+            )
+            if attempt >= max_retries:
+                logger.error(
+                    f"Échec du démarrage de la run après {max_retries} tentatives: {e}"
+                )
+                return False
+            # Exponential backoff before retrying
+            sleep_time = backoff_factor ** (attempt - 1)
+            logger.info(f"Attente {sleep_time}s avant nouvel essai...")
+            time.sleep(sleep_time)
 
 
 def log_params(params):
@@ -65,7 +102,7 @@ def log_model(model, artifact_path="model"):
         if type(model).__name__ == "TabularPredictor":
             _log_autogluon_model(model, artifact_path)
         else:
-            mlflow.sklearn.log_model(model, artifact_path)
+            mlflow.sklearn.log_model(model, name=artifact_path)
         logger.info(f"Modèle enregistré: {artifact_path}")
     except Exception as e:
         logger.error(f"Erreur lors de l'enregistrement du modèle: {e}")
@@ -75,25 +112,38 @@ def _log_autogluon_model(model, artifact_path):
     """Enregistre un modèle AutoGluon comme modèle pyfunc portable"""
     temp_dir = tempfile.mkdtemp(prefix="autogluon_model_")
     try:
-        # Sauvegarder le modèle AutoGluon
-        model.save(temp_dir)
-        logger.info(f"Modèle AutoGluon sauvegardé temporairement dans {temp_dir}")
+        # Copier le répertoire du modèle AutoGluon existant
+        model_dir = getattr(model, 'path', None)
+        if model_dir is None:
+            raise ValueError("Impossible de trouver le chemin du modèle AutoGluon (model.path est introuvable)")
+
+        model_dir = os.path.abspath(model_dir)
+        logger.info(f"Chemin AutoGluon détecté: {model_dir}")
+        shutil.copytree(model_dir, temp_dir, dirs_exist_ok=True)
+        logger.info(f"Modèle AutoGluon copié temporairement dans {temp_dir}")
+
+        predictor_dir = None
+        for root, _, files in os.walk(temp_dir):
+            if 'predictor.pkl' in files:
+                predictor_dir = root
+                break
+
+        if predictor_dir is None:
+            raise FileNotFoundError(
+                f"Aucun fichier predictor.pkl trouvé dans l'artefact AutoGluon copié: {temp_dir}"
+            )
+
+        logger.info(f"Répertoire AutoGluon valide trouvé: {predictor_dir}")
 
         # Définir la classe wrapper PythonModel
         class AutoGluonPyFunc(PythonModel):
             def load_context(self, context):
                 from autogluon.tabular import TabularPredictor
 
-                # Récupérer le chemin de l'artefact fourni par MLflow
                 artifact_path = context.artifacts["ag_model"]
-                
-                # Convertir en string et normaliser le chemin
-                artifact_path = str(artifact_path)
-                artifact_path = os.path.normpath(artifact_path)
-                
+                artifact_path = os.path.normpath(str(artifact_path))
+
                 logger.info(f"Chargement AutoGluon depuis artefact: {artifact_path}")
-                
-                # Charger le modèle AutoGluon
                 self.predictor = TabularPredictor.load(artifact_path)
                 logger.info("AutoGluon TabularPredictor chargé depuis artefact")
 
@@ -104,19 +154,30 @@ def _log_autogluon_model(model, artifact_path):
         mlflow.pyfunc.log_model(
             artifact_path=artifact_path,
             python_model=AutoGluonPyFunc(),
-            artifacts={"ag_model": temp_dir},
+            artifacts={"ag_model": predictor_dir},
         )
         logger.info("Modèle AutoGluon enregistré comme artefact pyfunc portable")
+    except Exception as e:
+        logger.error(f"Erreur lors de log_autogluon_model: {e}")
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
         logger.info(f"Répertoire temporaire supprimé: {temp_dir}")
 
 
-def log_artifact(file_path, artifact_path=None):
-    """Enregistre un artefact (fichier)"""
+def log_artifact(file_path, artifact_path=None, artifact_location=None):
+    """Enregistre un artefact (fichier) dans MLflow et copie une copie locale."""
     try:
+        local_dir = _ensure_artifact_location(artifact_location)
+        if artifact_path:
+            local_dir = local_dir / artifact_path
+        local_dir.mkdir(parents=True, exist_ok=True)
+
+        local_dest = local_dir / Path(file_path).name
+        shutil.copy2(file_path, local_dest)
+        logger.info(f"Artefact copié localement: {local_dest}")
+
         mlflow.log_artifact(file_path, artifact_path)
-        logger.info(f"Artefact enregistré: {file_path}")
+        logger.info(f"Artefact enregistré MLflow: {file_path}")
     except Exception as e:
         logger.error(f"Erreur lors de l'enregistrement de l'artefact: {e}")
 
@@ -130,7 +191,7 @@ def end_mlflow_run():
         logger.error(f"Erreur lors de la terminaison de la run: {e}")
 
 
-def log_training_session(model, metrics, params, artifact_path="model", experiment_name="default", tracking_uri=None):
+def log_training_session(model, metrics, params, artifact_path="model", experiment_name="default", tracking_uri=None, artifact_location=None):
     """
     Fonction utilitaire pour enregistrer une session complète
     
@@ -140,12 +201,11 @@ def log_training_session(model, metrics, params, artifact_path="model", experime
         params: Dict de paramètres
         artifact_path: Chemin de sauvegarde du modèle
         experiment_name: Nom de l'expérience
-        tracking_uri: URI de suivi MLflow (par défaut: http://localhost:5000)
+        tracking_uri: URI de suivi MLflow
+        artifact_location: Répertoire local où copier les artefacts
     """
     try:
-        if tracking_uri is None:
-            tracking_uri = "http://localhost:5000"
-        set_mlflow_tracking(tracking_uri)
+        set_mlflow_tracking(tracking_uri, artifact_location=artifact_location)
         start_mlflow_run(experiment_name)
         log_params(params)
         log_metrics(metrics)

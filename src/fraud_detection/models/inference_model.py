@@ -2,10 +2,12 @@
 Gestion de l'inférence du modèle en production via MLflow
 """
 import logging
+import os
 import mlflow
 import mlflow.sklearn
 import mlflow.pyfunc
 import numpy as np
+import pandas as pd
 
 from fraud_detection.configuration import get_mlflow_config
 
@@ -78,6 +80,7 @@ class InferenceModel:
                 return False
             
             self.model_version = model_version.version
+            logger.info(f"Model registry source: {model_version.source}")
             
             # Charger le modèle via alias
             model_uri = f"models:/{model_name}@{alias_prod}"
@@ -87,13 +90,44 @@ class InferenceModel:
                 self.model = mlflow.sklearn.load_model(model_uri)
                 logger.info(f"Modèle {model_name} v{self.model_version} chargé via sklearn")
             except Exception as sklearn_error:
-                # Retomber sur pyfunc (pour AutoGluon et autres modèles custom)
                 logger.warning(
                     f"Chargement sklearn échoué ({sklearn_error}), "
                     f"tentative chargement pyfunc pour {model_uri}"
                 )
-                self.model = mlflow.pyfunc.load_model(model_uri)
-                logger.info(f"Modèle {model_name} v{self.model_version} chargé via pyfunc")
+                try:
+                    self.model = mlflow.pyfunc.load_model(model_uri)
+                    logger.info(f"Modèle {model_name} v{self.model_version} chargé via pyfunc")
+                except Exception as pyfunc_error:
+                    logger.warning(
+                        f"Chargement pyfunc échoué ({pyfunc_error}), "
+                        "tentative de chargement AutoGluon direct depuis les artefacts MLflow"
+                    )
+                    # Fallback sur le run source si le registry alias ne résout pas le bon chemin
+                    run_id, artifact_path = self._parse_mlflow_source(model_version.source)
+                    if run_id is None:
+                        run_id = model_version.run_id
+                    if artifact_path is None:
+                        artifact_path = "model"
+
+                    if run_id is not None:
+                        run_uri = f"runs:/{run_id}/{artifact_path}"
+                        try:
+                            self.model = mlflow.pyfunc.load_model(run_uri)
+                            logger.info(f"Modèle {model_name} v{self.model_version} chargé via run URI")
+                        except Exception as run_pyfunc_error:
+                            logger.warning(
+                                f"Chargement pyfunc via run URI échoué ({run_pyfunc_error}), "
+                                "tentative de chargement AutoGluon depuis les artefacts du run"
+                            )
+                            self.model = self._load_autogluon_from_registry(model_version)
+                    else:
+                        self.model = self._load_autogluon_from_registry(model_version)
+                    if self.model is not None:
+                        logger.info(f"Modèle {model_name} v{self.model_version} chargé directement comme AutoGluon")
+            
+            if self.model is None:
+                logger.error(f"Impossible de charger le modèle {model_name} v{self.model_version}")
+                return False
             
             logger.info(f"Modèle {model_name} v{self.model_version} prêt pour l'inférence")
             return True
@@ -101,6 +135,88 @@ class InferenceModel:
         except Exception as e:
             logger.error(f"Erreur lors du chargement du modèle: {str(e)}")
             return False
+
+    def _load_autogluon_from_registry(self, model_version):
+        """Charge un modèle AutoGluon directement depuis les artefacts MLflow."""
+        try:
+            client = mlflow.tracking.MlflowClient()
+            run_id, artifact_path = self._parse_mlflow_source(model_version.source)
+            if run_id is None:
+                run_id = model_version.run_id
+            if artifact_path is None:
+                artifact_path = 'model'
+
+            if run_id is None and not model_version.source:
+                logger.error("Impossible de déterminer le run_id du modèle MLflow pour le chargement AutoGluon")
+                return None
+
+            logger.info(
+                f"Chargement AutoGluon depuis le registre MLflow: source={model_version.source}, "
+                f"run_id={run_id}, artifact_path={artifact_path}"
+            )
+
+            target_dir = None
+            if run_id is not None:
+                try:
+                    target_dir = client.download_artifacts(run_id, artifact_path)
+                except Exception as download_error:
+                    logger.warning(
+                        f"Impossible de télécharger l'artefact '{artifact_path}' du run {run_id}: {download_error}"
+                    )
+
+            if not target_dir or not any(os.scandir(target_dir)):
+                logger.info("Récupération de l'arborescence complète du run pour trouver le modèle AutoGluon")
+                if run_id is not None:
+                    target_dir = client.download_artifacts(run_id, "")
+                if not target_dir or not any(os.scandir(target_dir)):
+                    logger.info(f"Tentative de téléchargement direct depuis la source MLflow: {model_version.source}")
+                    try:
+                        target_dir = mlflow.artifacts.download_artifacts(model_version.source)
+                    except Exception as source_download_error:
+                        logger.warning(
+                            f"Téléchargement direct depuis la source MLflow échoué: {source_download_error}"
+                        )
+
+            predictor_dir = self._find_autogluon_predictor_path(target_dir)
+
+            if predictor_dir is None:
+                logger.error("Aucun modèle AutoGluon trouvé dans les artefacts MLflow téléchargés")
+                return None
+
+            try:
+                from autogluon.tabular import TabularPredictor
+            except Exception as e:
+                logger.error(f"AutoGluon non disponible pour le chargement du modèle: {e}")
+                return None
+
+            logger.info(f"Chargement AutoGluon depuis artefacts MLflow: {predictor_dir}")
+            return TabularPredictor.load(predictor_dir)
+        except Exception as e:
+            logger.error(f"Erreur lors du chargement AutoGluon depuis le registre MLflow: {e}")
+            return None
+
+    @staticmethod
+    def _parse_mlflow_source(source):
+        """Extrait run_id et artifact_path d'une source MLflow de type runs:/..."""
+        if not source:
+            return None, None
+
+        if source.startswith('runs:/'):
+            source = source[len('runs:/'):]
+            parts = source.split('/', 1)
+            if len(parts) == 2:
+                return parts[0], parts[1]
+            if len(parts) == 1:
+                return parts[0], None
+        return None, None
+
+    @staticmethod
+    def _find_autogluon_predictor_path(base_dir):
+        """Recherche le répertoire contenant predictor.pkl dans un artefact AutoGluon."""
+        for root, _, files in os.walk(base_dir):
+            if 'predictor.pkl' in files:
+                return root
+        return None
     
     def predict(self, X_data):
         """
@@ -117,12 +233,34 @@ class InferenceModel:
             return None, None
         
         try:
+            expected_features = self.model.features()
+            X_data = X_data[expected_features]
             predictions = self.model.predict(X_data)
             
             # Essayer de récupérer les scores de confiance
             confidence_scores = None
             if hasattr(self.model, 'predict_proba'):
-                confidence_scores = self.model.predict_proba(X_data).max(axis=1)
+                try:
+                    proba = self.model.predict_proba(X_data)
+                    # Gérer différents formats de predict_proba
+                    if isinstance(proba, pd.DataFrame):
+                        # AutoGluon retourne un DataFrame avec colonnes 0, 1
+                        confidence_scores = proba[1].values if 1 in proba.columns else proba.iloc[:, 1].values
+                    elif isinstance(proba, np.ndarray):
+                        if proba.ndim == 2:
+                            # Array 2D: prendre la colonne pour la classe 1 (fraude)
+                            confidence_scores = proba[:, 1]
+                        else:
+                            # Array 1D: utiliser directement
+                            confidence_scores = proba
+                    else:
+                        # Autre format: convertir en array
+                        confidence_scores = np.asarray(proba)
+                        if confidence_scores.ndim == 2:
+                            confidence_scores = confidence_scores[:, 1]
+                except (IndexError, KeyError, TypeError) as e:
+                    logger.warning(f"Erreur accès predict_proba format: {e}, fallback sur prédictions")
+                    confidence_scores = None
             elif hasattr(self.model, 'decision_function'):
                 confidence_scores = np.abs(self.model.decision_function(X_data))
             

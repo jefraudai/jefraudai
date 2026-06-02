@@ -57,4 +57,5 @@ def get_mlflow_config(config=None, config_path=None):
         "experiment_name": get_config_value(config, "mlflow.experiment_name", env_var="MLFLOW_EXPERIMENT_NAME", default="experiment"),
         "model_name": get_config_value(config, "mlflow.model_name", env_var="MLFLOW_MODEL_NAME", default="model"),
         "prod_alias": get_config_value(config, "mlflow.prod_alias", env_var="MLFLOW_PROD_ALIAS", default="prod"),
+        "artifact_location": get_config_value(config, "mlflow.artifact_location", env_var="MLFLOW_ARTIFACT_LOCATION", default="jefraudai/mlflow"),
     }

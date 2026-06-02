@@ -59,7 +59,7 @@ def fetch_transaction() -> dict | None:
       return None
 
 # Produce n messages asynchronously
-for i in range(2):
+for i in range(1000):
   transaction = fetch_transaction()
   if transaction:
     trans_num = transaction.get("trans_num", "unknown")
