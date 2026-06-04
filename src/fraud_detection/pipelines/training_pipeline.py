@@ -3,9 +3,9 @@ Pipeline complet ML: données -> validation -> entraînement -> monitoring
 """
 import logging
 from pathlib import Path
-from fraud_detection.data.data_loader import load_data, split_data, load_config
+from fraud_detection.data.data_loader import load_data, load_config
 from fraud_detection.data.data_validator import validate_data_quality, create_data_validation_report
-from fraud_detection.data.data_preparation import prepare_data
+from fraud_detection.data.data_preparation import prepare_data, split_data
 from fraud_detection.data.data_transformer import clean_data
 from fraud_detection.models.model import train_model, evaluate_model
 from fraud_detection.monitoring.performance_monitor import (

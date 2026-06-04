@@ -246,3 +246,80 @@ def transform_new_data(X_new, preprocessor, drop_columns=None, strip_columns=Tru
     X_new_transformed = preprocessor.transform(X_new_p)
     logger.info(f"✓ Nouvelles données transformées: {X_new_transformed.shape}")
     return X_new_transformed
+
+
+def split_data(data, test_size=0.2, random_state=42, target_column=None):
+    """
+    Divise les données en ensemble d'entraînement et de test
+    Nettoie aussi les données (NaN, types)
+    """
+    from sklearn.model_selection import train_test_split
+    
+    if data is None or data.empty:
+        raise ValueError("Les données sont vides ou None")
+    
+    # Nettoyer les données
+    data_clean = data.dropna()  # Supprimer les NaN
+    if data_clean.empty:
+        raise ValueError("Toutes les données contiennent des NaN")
+    
+    logger.info(f"Données après nettoyage: {data_clean.shape}")
+    logger.info("Aperçu des premières lignes de data_clean:")
+    logger.info(data_clean.head(2))
+
+    # Priorité : paramètre explicite > config.yaml > fallback
+    target_col = None
+    if target_column is not None and target_column in data_clean.columns:
+        target_col = target_column
+    
+    logger.info(f"Colonne cible utilisée (paramètre): {target_col}")
+
+    if target_col:
+        y = data_clean[target_col]
+        X = data_clean.drop(columns=[target_col])
+    else:
+        # Fallback: dernière colonne
+        X = data_clean.iloc[:, :-1]
+        y = data_clean.iloc[:, -1]
+        logger.info(f"Colonne cible utilisée (fallback): {y.name}")
+
+    logger.info(f"Features shape: {X.shape}, Target shape: {y.shape}")
+    logger.info("Aperçu des premières lignes de X:")
+    logger.info(X.head(2))
+    logger.info("Aperçu des premières lignes de y:")
+    logger.info(y.head(2))
+
+    y = y.astype(str).str.strip()
+    y = pd.to_numeric(y, errors='coerce')
+
+    mask = y.notna()
+    X = X[mask]
+    y = y[mask]
+    
+    # Vérifier que X et y ne sont pas vides
+    if X.empty or y.empty:
+        raise ValueError(f"X ou y vide après split: X.shape={X.shape}, y.shape={y.shape}")
+    
+    # Convertir en types numériques si possible
+    try:
+        X = X.astype(np.float32)
+        y = pd.to_numeric(y, errors='coerce').dropna()
+        # Re-aligner X et y après conversion
+        X = X.loc[y.index]
+    except Exception as e:
+        logger.info(f"Attention: Conversion numérique partiellement échouée (Normal si AutoGluon): {e}")
+    
+    if X.empty:
+        raise ValueError("X est vide après conversion")
+    
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, 
+        test_size=test_size,
+        random_state=random_state,
+        stratify=None  # Pas de stratification si y est continu
+    )
+    
+    logger.info(f"Ensemble d'entraînement: {X_train.shape}")
+    logger.info(f"Ensemble de test: {X_test.shape}")
+    
+    return X_train, X_test, y_train, y_test
