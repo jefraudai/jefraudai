@@ -77,13 +77,11 @@ graph TD
     subgraph "Stockage"
         S1[PostgreSQL]
         S2[Table Predictions]
-        S3[Table Transactions]
     end
     
     subgraph "Alertes"
         A1[Fraud Detected?]
         A2[Email Resend]
-        A3[Grafana Alert]
     end
     
     E1 --> E2
@@ -96,10 +94,8 @@ graph TD
     T3 --> T4
     T4 --> S1
     S1 --> S2
-    S1 --> S3
     T4 --> A1
     A1 -->|Oui| A2
-    A1 -->|Oui| A3
     
     style E1 fill:#e1f5ff
     style I1 fill:#fff4e1
@@ -133,7 +129,6 @@ graph TD
     subgraph "Évaluation & Monitoring"
         E1[Model Evaluation]
         E2[Performance Metrics]
-        E3[Evidently AI<br/>Drift Detection]
     end
     
     subgraph "MLOps"
@@ -165,57 +160,6 @@ graph TD
 ```
 
 ## 📊 Schéma de Données
-
-### Schéma des Transactions
-
-```mermaid
-erDiagram
-    TRANSACTION ||--o{ PREDICTION : génère
-    TRANSACTION {
-        string trans_num PK
-        datetime trans_date_trans_time
-        string cc_num
-        string merchant
-        category category
-        float amount
-        string gender
-        string street
-        string city
-        string state
-        int zip
-        float lat
-        float long
-        int city_pop
-        string job
-        datetime dob
-        string trans_num
-        int unix_time
-        float merch_lat
-        float merch_long
-        boolean is_fraud
-    }
-    
-    PREDICTION {
-        int id PK
-        string trans_num FK
-        boolean is_fraud_prediction
-        float confidence_score
-        string model_version
-        timestamp prediction_time
-        string model_alias
-    }
-    
-    MONITORING {
-        int id PK
-        timestamp metric_time
-        float accuracy
-        float precision
-        float recall
-        float f1_score
-        boolean drift_detected
-        string drift_score
-    }
-```
 
 ### Features Utilisées
 
@@ -266,55 +210,6 @@ graph TD
 
 ## 🔧 Configuration
 
-### Structure du Config YAML
-
-```mermaid
-graph TD
-    subgraph "config.yaml"
-        CFG[Configuration]
-        
-        subgraph "Data"
-            D1[raw_path]
-            D2[processed_path]
-            D3[drop_columns]
-            D4[target_column]
-        end
-        
-        subgraph "Model"
-            M1[test_size]
-            M2[random_state]
-            M3[model_type]
-        end
-        
-        subgraph "Training"
-            T1[epochs]
-            T2[batch_size]
-            T3[learning_rate]
-        end
-        
-        subgraph "MLflow"
-            L1[tracking_uri]
-            L2[experiment_name]
-            L3[model_name]
-            L4[prod_alias]
-        end
-        
-        subgraph "Monitoring"
-            O1[reference_data_path]
-            O2[dashboard_path]
-            O3[report_path]
-        end
-    end
-    
-    CFG --> D1
-    CFG --> M1
-    CFG --> T1
-    CFG --> L1
-    CFG --> O1
-    
-    style CFG fill:#f3e1ff
-```
-
 ## 🚀 Services de Déploiement
 
 ### Microservices Architecture
@@ -357,6 +252,5 @@ graph TD
 - [Architecture Détaillée](architecture.md)
 - [Schéma de Données](schema.md)
 - [Pipeline ML](pipeline.md)
-- [API Documentation](api.md)
 - [Configuration](configuration.md)
 - [Déploiement](deployment.md)

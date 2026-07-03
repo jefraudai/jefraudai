@@ -40,7 +40,6 @@ graph TD
     
     subgraph "Phase 6: Monitoring"
         M1[Performance Monitor]
-        M2[Drift Detection]
         M3[Evidently Report]
     end
     
@@ -68,8 +67,7 @@ graph TD
     V1 --> V2
     V2 --> V3
     V2 --> M1
-    M1 --> M2
-    M2 --> M3
+    M1 --> M3
     V2 --> O1
     O1 --> O2
     O2 --> O3
@@ -83,7 +81,7 @@ graph TD
     style O1 fill:#fff4e1
 ```
 
-## 📥 Étape 1: Chargement des Données
+## 📥 Chargement des Données
 
 ### Data Loader
 
@@ -95,30 +93,13 @@ graph TD
         DL3[Validate Encoding]
         DL4[Check Empty Data]
         DL5[Check Missing Values]
-        DL6[Log Statistics]
-    end
-    
-    subgraph "Output"
-        OUT1[DataFrame]
-        OUT2[Shape]
-        OUT3[Columns]
-        OUT4[Data Types]
-        OUT5[Head Preview]
-    end
-    
+    end   
+  
     DL1 --> DL2
     DL2 --> DL3
     DL3 --> DL4
     DL4 --> DL5
-    DL5 --> DL6
-    DL6 --> OUT1
-    DL6 --> OUT2
-    DL6 --> OUT3
-    DL6 --> OUT4
-    DL6 --> OUT5
-    
-    style DL1 fill:#e1f5ff
-    style OUT1 fill:#e1ffe1
+
 ```
 
 **Fonctionnalités:**
@@ -126,7 +107,6 @@ graph TD
 - Validation de l'encodage UTF-8
 - Détection des données vides
 - Comptage des valeurs manquantes
-- Logging des statistiques (shape, colonnes, types, preview)
 
 ## ✅ Étape 2: Validation des Données
 
@@ -416,95 +396,8 @@ graph TD
 - `random_forest`: RandomForestClassifier/Regressor
 - `linear_regression`: LinearRegression
 
-## 📊 Étape 7: Évaluation du Modèle
 
-### Model Evaluation
-
-```mermaid
-graph TD
-    subgraph "AutoGluon Evaluation"
-        AE1[predict X_test]
-        AE2[evaluate test_data]
-        AE3[calculate manual metrics]
-    end
-    
-    subgraph "Classification Metrics"
-        CM1[accuracy]
-        CM2[precision]
-        CM3[recall]
-        CM4[f1_score]
-    end
-    
-    subgraph "Regression Metrics"
-        RM1[mse]
-        RM2[rmse]
-        RM3[r2]
-    end
-    
-    subgraph "Feature Importance"
-        FI1[feature_importance]
-        FI2[sort by importance]
-        FI3[return dict]
-    end
-    
-    AE1 --> AE2
-    AE2 --> AE3
-    AE3 --> CM1
-    AE3 --> CM2
-    AE3 --> CM3
-    AE3 --> CM4
-    AE1 --> FI1
-    FI1 --> FI2
-    FI2 --> FI3
-    
-    style AE1 fill:#e1f5ff
-    style CM1 fill:#fff4e1
-    style RM1 fill:#e1ffe1
-    style FI1 fill:#ffe1e1
-```
-
-## 📈 Étape 8: Monitoring de Performance
-
-### Performance Monitor
-
-```mermaid
-graph TD
-    subgraph "Performance Metrics"
-        PM1[Calculate Train Metrics]
-        PM2[Calculate Test Metrics]
-        PM3[Compare Performance]
-    end
-    
-    subgraph "Drift Detection"
-        DD1[Feature Drift]
-        DD2[Target Drift]
-        DD3[Drift Score]
-        DD4[Drift Detected?]
-    end
-    
-    subgraph "Monitoring Output"
-        MO1[performance_train]
-        MO2[performance_test]
-        MO3[drift]
-        MO4[drift_detected]
-    end
-    
-    PM1 --> PM2
-    PM2 --> PM3
-    PM3 --> MO1
-    PM3 --> MO2
-    DD1 --> DD2
-    DD2 --> DD3
-    DD3 --> DD4
-    DD4 --> MO3
-    DD4 --> MO4
-    
-    style PM1 fill:#e1f5ff
-    style DD1 fill:#fff4e1
-    style MO1 fill:#e1ffe1
-```
-
-## 📝 Étape 9: Logging MLflow
+## 📝 Logging MLflow
 
 ### MLflow Tracker
 
@@ -558,69 +451,6 @@ graph TD
     style PL1 fill:#ffe1e1
 ```
 
-## 🚀 Étape 10: Gestion des Stages
-
-### Model Stage Management
-
-```mermaid
-graph TD
-    subgraph "Get Latest Run"
-        GR1[get_experiment]
-        GR2[search_runs]
-        GR3[get_run_id]
-    end
-    
-    subgraph "Register Model"
-        RM1[register_model_version]
-        RM2[set_alias_staging]
-        RM3[get_version]
-    end
-    
-    subgraph "Get Current Prod"
-        GP1[get_model_by_alias<br/>prod]
-        GP2[compare_metrics]
-    end
-    
-    subgraph "Promotion Logic"
-        PL1[check_improvement]
-        PL2[min_improvement%]
-        PL3[promote_to_prod]
-    end
-    
-    subgraph "Result"
-        RE1[success]
-        RE2[version]
-        RE3[alias]
-        RE4[metric_used]
-        RE5[improvement]
-    end
-    
-    GR1 --> GR2
-    GR2 --> GR3
-    GR3 --> RM1
-    RM1 --> RM2
-    RM2 --> RM3
-    RM3 --> GP1
-    GP1 --> GP2
-    GP2 --> PL1
-    PL1 --> PL2
-    PL2 --> PL3
-    PL3 --> RE1
-    PL3 --> RE2
-    PL3 --> RE3
-    PL3 --> RE4
-    PL3 --> RE5
-    
-    style GR1 fill:#e1f5ff
-    style RM1 fill:#fff4e1
-    style GP1 fill:#e1ffe1
-    style PL1 fill:#ffe1e1
-```
-
-**Métriques de promotion (par ordre de priorité):**
-1. `mae` (Mean Absolute Error)
-2. `rmse` (Root Mean Square Error)
-3. `accuracy`
 
 ## 🔮 Pipeline d'Inférence
 

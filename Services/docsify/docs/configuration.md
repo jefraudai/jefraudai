@@ -45,60 +45,6 @@ graph TD
 
 ## 📄 config.yaml
 
-### Structure Complète
-
-```mermaid
-graph TD
-    subgraph "config.yaml"
-        ROOT[Root Configuration]
-        
-        subgraph "data"
-            D1[raw_path<br/>STRING]
-            D2[processed_path<br/>STRING]
-            D3[drop_columns<br/>LIST]
-            D4[target_column<br/>STRING]
-        end
-        
-        subgraph "model"
-            M1[test_size<br/>FLOAT]
-            M2[random_state<br/>INTEGER]
-            M3[model_type<br/>STRING]
-        end
-        
-        subgraph "training"
-            T1[epochs<br/>INTEGER]
-            T2[batch_size<br/>INTEGER]
-            T3[learning_rate<br/>FLOAT]
-        end
-        
-        subgraph "mlflow"
-            L1[tracking_uri<br/>STRING]
-            L2[experiment_name<br/>STRING]
-            L3[model_name<br/>STRING]
-            L4[prod_alias<br/>STRING]
-            L5[artifact_location<br/>STRING]
-        end
-        
-        subgraph "monitoring"
-            O1[reference_data_path<br/>STRING]
-            O2[dashboard_path<br/>STRING]
-            O3[report_path<br/>STRING]
-        end
-    end
-    
-    ROOT --> D1
-    ROOT --> M1
-    ROOT --> T1
-    ROOT --> L1
-    ROOT --> O1
-    
-    style ROOT fill:#f3e1ff
-    style D1 fill:#e1f5ff
-    style M1 fill:#fff4e1
-    style L1 fill:#e1ffe1
-    style O1 fill:#ffe1e1
-```
-
 ### Contenu du Fichier
 
 ```yaml
@@ -286,23 +232,6 @@ graph TD
     style EV1 fill:#fff4e1
 ```
 
-### Priorité de Configuration
-
-```mermaid
-graph TD
-    subgraph "Priority Order"
-        P1[1. Environment Variable<br/>Highest Priority]
-        P2[2. config.yaml]
-        P3[3. Default Value<br/>Lowest Priority]
-    end
-    
-    P1 --> P2
-    P2 --> P3
-    
-    style P1 fill:#ffe1e1
-    style P2 fill:#fff4e1
-    style P3 fill:#e1ffe1
-```
 
 ## 📝 Sections de Configuration
 
@@ -369,55 +298,7 @@ graph TD
     style MT1 fill:#fff4e1
 ```
 
-### Section: mlflow
 
-```mermaid
-graph TD
-    subgraph "mlflow Configuration"
-        L1[tracking_uri<br/>https://jefraudai-mlflow.hf.space/]
-        L2[experiment_name<br/>Fraud_Detection]
-        L3[model_name<br/>fraud_detection_model]
-        L4[prod_alias<br/>prod]
-        L5[artifact_location<br/>jefraudai/mlflow]
-    end
-    
-    subgraph "MLflow Aliases"
-        A1[staging<br/>Modèles en test]
-        A2[prod<br/>Modèles en production]
-        A3[archived<br/>Modèles archivés]
-    end
-    
-    L4 --> A1
-    L4 --> A2
-    L4 --> A3
-    
-    style L1 fill:#e1f5ff
-    style A1 fill:#fff4e1
-```
-
-### Section: monitoring
-
-```mermaid
-graph TD
-    subgraph "monitoring Configuration"
-        O1[reference_data_path<br/>data/processed/reference.csv]
-        O2[dashboard_path<br/>outputs/evidently_dashboard.html]
-        O3[report_path<br/>outputs/evidently_report.html]
-    end
-    
-    subgraph "Evidently AI"
-        E1[Data Drift Detection]
-        E2[Data Quality Reports]
-        E3[Performance Monitoring]
-    end
-    
-    O2 --> E1
-    O3 --> E2
-    O1 --> E3
-    
-    style O1 fill:#e1f5ff
-    style E1 fill:#fff4e1
-```
 
 ## 🔒 Secrets Management
 

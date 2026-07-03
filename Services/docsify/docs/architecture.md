@@ -8,8 +8,8 @@ Le système de détection de fraude est construit selon une architecture microse
 
 ```mermaid
 graph TD
-    subgraph "Couche Présentation"
-        UI[API Endpoint<br/>HuggingFace Spaces]
+    subgraph "Couche Externe"
+        UI[API Endpoint<br/>HuggingFace Space]
     end
     
     subgraph "Couche Streaming"
@@ -30,7 +30,7 @@ graph TD
     
     subgraph "Couche Monitoring"
         GF[Grafana Cloud<br/>Dashboard]
-        EV[Evidently AI<br/>Data Drift]
+        EV[Evidently AI<br/>Validation & Performance]
         RS[Resend<br/>Email Service]
     end
     
@@ -142,9 +142,7 @@ graph TD
     end
     
     subgraph "PostgreSQL"
-        D1[Transactions Table]
-        D2[Predictions Table]
-        D3[Monitoring Metrics]
+        D1[Predictions Table]
     end
     
     C1 --> C2
@@ -157,7 +155,6 @@ graph TD
     C4 --> C5
     C5 --> C6
     C6 --> D1
-    C6 --> D2
     C5 --> C7
     C7 -->|Fraud Alert| Email
     
@@ -194,7 +191,7 @@ graph TD
         P4[Train/Test Split<br/>80/20]
     end
     
-    subgraph "Phase 3: Préparation"
+    subgraph "Phase 3: Préparation - Autogluon"
         R1[Auto-detect Types<br/>Numeric/Categorical]
         R2[Numeric Pipeline<br/>Imputer + Scaler]
         R3[Categorical Pipeline<br/>OneHotEncoder]
@@ -267,7 +264,7 @@ graph TD
         S4[Transform Dates<br/>to Month/Hour/Weekday]
     end
     
-    subgraph "Stateful Transform"
+    subgraph "Stateful Transform - Autogluon"
         F1[Detect Feature Types]
         F2[Numeric Features<br/>Imputer + Scaler]
         F3[Categorical Features<br/>OneHotEncoder]
@@ -297,85 +294,6 @@ graph TD
     style OUT fill:#ffe1e1
 ```
 
-## 📊 Monitoring et Observabilité
-
-### Stack de Monitoring
-
-```mermaid
-graph TD
-    subgraph "Data Monitoring"
-        D1[Evidently AI<br/>Data Drift]
-        D2[Data Quality Reports]
-        D3[Reference Data]
-    end
-    
-    subgraph "Model Monitoring"
-        M1[Performance Metrics]
-        M2[Prediction Distribution]
-        M3[Confidence Scores]
-    end
-    
-    subgraph "System Monitoring"
-        S1[Grafana Dashboard]
-        S2[Kafka Lag Metrics]
-        S3[Database Performance]
-    end
-    
-    subgraph "Alerting"
-        A1[Email Alerts<br/>Resend]
-        A2[Fraud Notifications]
-        A3[System Health Alerts]
-    end
-    
-    D1 --> S1
-    M1 --> S1
-    S1 --> A1
-    M1 --> A2
-    S2 --> A3
-    
-    style D1 fill:#e1f5ff
-    style M1 fill:#fff4e1
-    style S1 fill:#e1ffe1
-    style A1 fill:#ffe1e1
-```
-
-### Métriques Suivies
-
-```mermaid
-graph TD
-    subgraph "ML Metrics"
-        ML1[Accuracy]
-        ML2[Precision]
-        ML3[Recall]
-        ML4[F1 Score]
-        ML5[ROC AUC]
-    end
-    
-    subgraph "Data Metrics"
-        DM1[Missing Values Ratio]
-        DM2[Duplicate Rows Ratio]
-        DM3[Feature Distribution]
-        DM4[Drift Score]
-    end
-    
-    subgraph "System Metrics"
-        SM1[Kafka Consumer Lag]
-        SM2[Database Query Time]
-        SM3[Model Inference Time]
-        SM4[API Response Time]
-    end
-    
-    subgraph "Business Metrics"
-        BM1[Fraud Detection Rate]
-        BM2[False Positive Rate]
-        BM3[Alert Response Time]
-    end
-    
-    style ML1 fill:#e1f5ff
-    style DM1 fill:#fff4e1
-    style SM1 fill:#e1ffe1
-    style BM1 fill:#ffe1e1
-```
 
 ## 🔐 Sécurité et Gouvernance
 
@@ -427,7 +345,6 @@ graph TD
         HF1[Producer Service<br/>Python + Docker]
         HF2[Consumer Service<br/>Python + Docker]
         HF3[MLflow UI<br/>Python + Docker]
-        HF4[API Endpoint<br/>FastAPI]
     end
     
     subgraph "External Cloud"
@@ -445,7 +362,7 @@ graph TD
     HF2 --> EC1
     HF2 --> EC2
     HF3 --> EC3
-    HF2 --> MC1
+    MC1 --> EC2
     HF2 --> MC2
     
     style HF1 fill:#e1f5ff
@@ -455,11 +372,11 @@ graph TD
 
 ### Services et Endpoints
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| API Production | https://sdacelo-real-time-fraud-detection.hf.space/ | Endpoint principal |
-| MLflow UI | https://jefraudai-mlflow.hf.space/#/models | Interface MLflow |
-| Producer | https://huggingface.co/spaces/jefraudai/Producer | Service Producer |
-| Consumer | https://huggingface.co/spaces/jefraudai/consumer | Service Consumer |
-| Kafka | https://cloud.redpanda.com/clusters/... | Cluster Redpanda |
-| Dashboard | https://jefraudai.grafana.net/... | Grafana Dashboard |
+| Service        | URL                                                                                                                                                         | Description        |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| API Production | https://sdacelo-real-time-fraud-detection.hf.space/                                                                                                         | Endpoint principal |
+| MLflow UI      | https://jefraudai-mlflow.hf.space/#/models                                                                                                                  | Interface MLflow   |
+| Producer       | https://huggingface.co/spaces/jefraudai/Producer                                                                                                            | Service Producer   |
+| Consumer       | https://huggingface.co/spaces/jefraudai/consumer                                                                                                            | Service Consumer   |
+| Kafka          | https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/                                                                         | Cluster Redpanda   |
+| Dashboard      | https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598?from=2023-12-04T13:55:58.556Z&to=2028-12-03T13:55:58.556Z&timezone=browser | Grafana Dashboard  |

@@ -124,33 +124,6 @@ graph TD
     style DP1 fill:#fff4e1
 ```
 
-### Docsify Dockerfile
-
-```mermaid
-graph TD
-    subgraph "Docsify Dockerfile"
-        D1[FROM node:alpine]
-        D2[WORKDIR /docs]
-        D3[COPY index.html]
-        D4[COPY docs/]
-        D5[EXPOSE 3000]
-        D6[CMD npx docsify serve]
-    end
-    
-    subgraph "Static Files"
-        SF1[index.html]
-        SF2[docs/*.md]
-        SF3[Mermaid Plugin]
-    end
-    
-    D3 --> SF1
-    D4 --> SF2
-    D4 --> SF3
-    
-    style D1 fill:#e1f5ff
-    style SF1 fill:#fff4e1
-```
-
 ## 📦 Services HuggingFace Spaces
 
 ### Producer Service
@@ -391,29 +364,22 @@ graph TD
     
     subgraph "Data Sources"
         DS1[PostgreSQL]
-        DS2[Prometheus]
         DS3[MLflow]
     end
     
     subgraph "Panels"
         PN1[Fraud Rate]
-        PN2[Prediction Latency]
-        PN3[Kafka Lag]
-        PN4[Model Performance]
     end
     
     GC1 --> DS1
     DS1 --> PN1
-    DS2 --> PN2
-    DS3 --> PN3
-    DS1 --> PN4
     
     style GC1 fill:#e1f5ff
     style DS1 fill:#fff4e1
     style PN1 fill:#e1ffe1
 ```
 
-**URL:** https://jefraudai.grafana.net/public-dashboards/2b818560e4654e5ba8d5ae9a8a3dc72e
+**URL:** https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598?from=2023-12-04T13:55:58.556Z&to=2028-12-03T13:55:58.556Z&timezone=browser
 
 ### Resend (Email Service)
 
@@ -452,72 +418,6 @@ graph TD
 
 ## 🔧 Configuration du Déploiement
 
-### Variables d'Environnement
-
-```mermaid
-graph TD
-    subgraph "Producer Env Vars"
-        PE1[KAFKA_BOOTSTRAP_SERVERS]
-        PE2[KAFKA_API_KEY]
-        PE3[KAFKA_API_SECRET]
-        PE4[KAFKA_TOPIC]
-    end
-    
-    subgraph "Consumer Env Vars"
-        CE1[KAFKA_BOOTSTRAP_SERVERS]
-        CE2[KAFKA_API_KEY]
-        CE3[KAFKA_API_SECRET]
-        CE4[KAFKA_TOPIC]
-        CE5[DATABASE_URI]
-        CE6[MLFLOW_TRACKING_URI]
-        CE7[MLFLOW_EXPERIMENT_NAME]
-        CE8[MLFLOW_MODEL_NAME]
-        CE9[RESEND_API_KEY]
-        CE10[ALERT_EMAIL]
-    end
-    
-    subgraph "MLflow Env Vars"
-        ME1[MLFLOW_TRACKING_URI]
-        ME2[MLFLOW_S3_ENDPOINT_URL]
-        ME3[AWS_ACCESS_KEY_ID]
-        ME4[AWS_SECRET_ACCESS_KEY]
-    end
-    
-    style PE1 fill:#e1f5ff
-    style CE1 fill:#fff4e1
-    style ME1 fill:#e1ffe1
-```
-
-### GitHub Secrets
-
-```mermaid
-graph TD
-    subgraph "GitHub Secrets"
-        GS1[KAFKA_BOOTSTRAP_SERVERS]
-        GS2[KAFKA_API_KEY]
-        GS3[KAFKA_API_SECRET]
-        GS4[DATABASE_URI]
-        GS5[MLFLOW_TRACKING_URI]
-        GS6[RESEND_API_KEY]
-        GS7[ALERT_EMAIL]
-    end
-    
-    subgraph "Usage"
-        US1[CI/CD Pipelines]
-        US2[HuggingFace Spaces]
-        US3[Docker Builds]
-    end
-    
-    GS1 --> US1
-    GS2 --> US1
-    GS3 --> US2
-    GS4 --> US2
-    GS5 --> US3
-    
-    style GS1 fill:#e1f5ff
-    style US1 fill:#fff4e1
-```
-
 ## 🔄 CI/CD Pipeline
 
 ### GitHub Actions Workflow
@@ -525,19 +425,8 @@ graph TD
 ```mermaid
 graph TD
     subgraph "CI/CD Pipeline"
-        CD1[Push to GitHub]
-        CD2[Trigger Workflow]
-        CD3[Run Tests]
-        CD4[Build Docker Image]
         CD5[Push to HuggingFace]
         CD6[Deploy to Spaces]
-        CD7[Health Check]
-    end
-    
-    subgraph "Testing"
-        T1[Unit Tests]
-        T2[Integration Tests]
-        T3[Model Tests]
     end
     
     subgraph "Deployment"
@@ -546,20 +435,11 @@ graph TD
         D3[MLflow Space]
     end
     
-    CD1 --> CD2
-    CD2 --> CD3
-    CD3 --> T1
-    T1 --> T2
-    T2 --> T3
-    T3 --> CD4
     CD4 --> CD5
     CD5 --> CD6
     CD6 --> D1
     CD6 --> D2
     CD6 --> D3
-    D1 --> CD7
-    D2 --> CD7
-    D3 --> CD7
     
     style CD1 fill:#e1f5ff
     style T1 fill:#fff4e1
@@ -568,7 +448,7 @@ graph TD
 
 ## 📊 Monitoring en Production
 
-### Stack de Monitoring
+### Stack de Monitoring (Non implémenté)
 
 ```mermaid
 graph TD
@@ -606,78 +486,10 @@ graph TD
     style VI1 fill:#e1ffe1
 ```
 
-### Métriques Clés
-
-```mermaid
-graph TD
-    subgraph "Business Metrics"
-        BM1[Fraud Detection Rate]
-        BM2[False Positive Rate]
-        BM3[Alert Response Time]
-    end
-    
-    subgraph "Technical Metrics"
-        TM1[Prediction Latency]
-        TM2[Kafka Consumer Lag]
-        TM3[Database Query Time]
-        TM4[API Response Time]
-    end
-    
-    subgraph "ML Metrics"
-        MM1[Model Accuracy]
-        MM2[Model Drift]
-        MM3[Data Drift]
-    end
-    
-    style BM1 fill:#e1f5ff
-    style TM1 fill:#fff4e1
-    style MM1 fill:#e1ffe1
-```
-
-## 🔐 Sécurité
-
-### Mesures de Sécurité
-
-```mermaid
-graph TD
-    subgraph "Security Layers"
-        SL1[API Authentication]
-        SL2[Database Encryption]
-        SL3[Kafka SASL/SSL]
-        SL4[Secrets Management]
-    end
-    
-    subgraph "Access Control"
-        AC1[GitHub Secrets]
-        AC2[HuggingFace Secrets]
-        AC3[IP Whitelist]
-        AC4[Rate Limiting]
-    end
-    
-    subgraph "Data Protection"
-        DP1[PII Redaction]
-        DP2[Encryption at Rest]
-        DP3[Encryption in Transit]
-        DP4[Audit Logging]
-    end
-    
-    SL1 --> AC1
-    SL2 --> AC2
-    SL3 --> AC3
-    SL4 --> AC4
-    AC1 --> DP1
-    AC2 --> DP2
-    AC3 --> DP3
-    AC4 --> DP4
-    
-    style SL1 fill:#e1f5ff
-    style AC1 fill:#fff4e1
-    style DP1 fill:#e1ffe1
-```
 
 ## 🚨 Gestion des Incidents
 
-### Procédure d'Alerte
+### Procédure d'Alerte (Non implémenté)
 
 ```mermaid
 graph TD
@@ -723,7 +535,7 @@ graph TD
 
 ## 📈 Scaling
 
-### Stratégie de Scaling
+### Stratégie de Scaling (Non implémenté)
 
 ```mermaid
 graph TD
@@ -760,7 +572,7 @@ graph TD
 
 ## 🔄 Mises à jour
 
-### Procédure de Déploiement
+### Procédure de Déploiement (Non implémenté)
 
 ```mermaid
 graph TD
@@ -794,11 +606,11 @@ graph TD
 
 ## 📝 Résumé des Endpoints Production
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| API | https://sdacelo-real-time-fraud-detection.hf.space/ | Endpoint principal |
-| MLflow | https://jefraudai-mlflow.hf.space/#/models | Interface MLflow |
-| Producer | https://huggingface.co/spaces/jefraudai/Producer | Service Producer |
-| Consumer | https://huggingface.co/spaces/jefraudai/consumer | Service Consumer |
-| Kafka | https://cloud.redpanda.com/... | Cluster Redpanda |
-| Dashboard | https://jefraudai.grafana.net/... | Grafana Dashboard |
+| Service   | URL                                                                                                                                                         | Description        |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| API       | https://sdacelo-real-time-fraud-detection.hf.space/                                                                                                         | Endpoint principal |
+| MLflow    | https://jefraudai-mlflow.hf.space/#/models                                                                                                                  | Interface MLflow   |
+| Producer  | https://huggingface.co/spaces/jefraudai/Producer                                                                                                            | Service Producer   |
+| Consumer  | https://huggingface.co/spaces/jefraudai/consumer                                                                                                            | Service Consumer   |
+| Kafka     | https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/                                                                         | Cluster Redpanda   |
+| Dashboard | https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598?from=2023-12-04T13:55:58.556Z&to=2028-12-03T13:55:58.556Z&timezone=browser | Grafana Dashboard  |
