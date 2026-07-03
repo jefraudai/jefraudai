@@ -3,7 +3,7 @@
   
 - **Architecture**
   - [Architecture Détaillée](architecture.md)
-  - [Schéma de Données](schema.md)
+  - [Schéma de Données](data.md)
   
 - **Pipeline ML**
   - [Pipeline d'Entraînement](pipeline.md)

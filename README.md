@@ -16,7 +16,7 @@ Automatic-Fraud-Detection
 
 # Besoin du projet
 
-- Etre averti dès qu'une fraude est détectée.
+- Être averti en temps réel qu'une fraude est détectée
 - Une fois chaque matin, pouvoir vérifier tous les paiements et fraudes intervenus la veille.
 
 
@@ -50,20 +50,25 @@ Automatic-Fraud-Detection
               +-------------+-------------+
               |                           |
               v                           v
-   +------------------+       +-------------------+
-   | Grafana          |       | Email             |
-   | Monitoring       |       | Notification      |
-   +------------------+       +-------------------+
+      +------------------+       +-------------------+
+      | Grafana          |       | Email             |
+      | Monitoring       |       | Notification      |
+      +------------------+       +-------------------+
 
 
 
 
 
+# Améliorations possibles
 
-# Reste à faire
+Amélioration de la documentation
+- Générer un Pdf avec un schéma de l'infrastructure et la justification des choix
+- Adapter les Schemas pour le format présentation
+- Déploiement de Docsify et Slidev
+- Déploiement de Slidev en 
 
-## À faire
-- Vérifier que les fraudes sont détectées
+## Améliorer le model avec des resssources moins limitées
+- Ajouter des features pour une meilleure détection
 
 ## Amélioration Fonctionalité
 - Orchestrateur pour potentiellement relancer les services Producer et Consumer
@@ -90,13 +95,13 @@ Automatic-Fraud-Detection
 
 
 
-# Related Links
+# Lien utiles
 
 ## Cloud Accounts (JefraudAi)
-DB : https://console.neon.tech/app/projects/restless-shadow-27935644
-S3: https://supabase.com/dashboard/project/xjkkzjtjgdsmemheppgl/storage/files/buckets/mlflow-artifacts
-Kafka : https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/
-Emailing : https://resend.com/ (Jenedai Account)
+- DB : https://console.neon.tech/app/projects/restless-shadow-27935644
+- S3: https://supabase.com/dashboard/project/xjkkzjtjgdsmemheppgl/storage/files/buckets/mlflow-artifacts
+- Kafka : https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/
+- Emailing : https://resend.com/ (Jenedai Account)
 
 ## Prod
 - API : https://sdacelo-real-time-fraud-detection.hf.space/
@@ -104,4 +109,4 @@ Emailing : https://resend.com/ (Jenedai Account)
 - Producer : https://huggingface.co/spaces/jefraudai/Producer
 - Kafka : https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/
 - Consumer : https://huggingface.co/spaces/jefraudai/consumer
-- Dashboard : https://jefraudai.grafana.net/public-dashboards/2b818560e4654e5ba8d5ae9a8a3dc72e
+- Dashboard : https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598?from=2023-12-04T13:55:58.556Z&to=2028-12-03T13:55:58.556Z&timezone=browser

@@ -1,4 +1,4 @@
-# Détection Automatisée de Fraudes - Documentation
+# Automatic-Fraud-Detection - Documentation
 
 ## 📋 Vue d'ensemble
 
@@ -6,9 +6,8 @@ Système de détection de fraude en temps réel utilisant l'IA pour analyser les
 
 ### Objectifs
 
-- Être averti dès qu'une fraude est détectée
-- Vérifier quotidiennement tous les paiements et fraudes de la veille
-- Pipeline de données temps réel avec monitoring et gouvernance
+- Être averti en temps réel qu'une fraude est détectée
+- Une fois chaque matin, pouvoir vérifier tous les paiements et fraudes intervenus la veille.
 
 ## 🏗️ Architecture Globale
 
@@ -197,7 +196,7 @@ graph TD
 ## 📚 Navigation
 
 - [Architecture Détaillée](architecture.md)
-- [Schéma de Données](schema.md)
+- [Schéma de Données](data.md)
 - [Pipeline ML](pipeline.md)
 - [Configuration](configuration.md)
 - [Déploiement](deployment.md)

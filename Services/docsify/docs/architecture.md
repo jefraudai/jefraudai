@@ -24,13 +24,13 @@ graph TD
     end
     
     subgraph "Couche Données"
-        PG[PostgreSQL<br/>Neon Cloud]
+        PG[PostgreSQL<br/>Predictions<br/>Neon Cloud]
+        PG2[PostgreSQL<br/>MlFlow<br/>Neon Cloud]
         S3[Supabase S3<br/>Artifacts Storage]
     end
     
     subgraph "Couche Monitoring"
         GF[Grafana Cloud<br/>Dashboard]
-        EV[Evidently AI<br/>Validation & Performance]
         RS[Resend<br/>Email Service]
     end
     
@@ -38,11 +38,11 @@ graph TD
     KP --> KT
     KT --> KC
     KC --> ML
+    ML --> PG2
     ML --> AG
     KC --> PG
     ML --> S3
     PG --> GF
-    KC --> EV
     KC --> RS
     
     style UI fill:#e1f5ff
