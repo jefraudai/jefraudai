@@ -27,6 +27,7 @@ config = load_config()
 mlflow_config = get_mlflow_config(config)
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
+KAFKA_USERNAME          = os.getenv("KAFKA_USERNAME") or "consumer"
 KAFKA_TOPIC_IN          = os.getenv("KAFKA_TOPIC_IN")
 KAFKA_TOPIC_OUT         = os.getenv("KAFKA_TOPIC_OUT")
 MLFLOW_TRACKING_URI     = mlflow_config.get("tracking_uri")
@@ -228,7 +229,7 @@ def main():
         "bootstrap.servers":  KAFKA_BOOTSTRAP_SERVERS,
         "security.protocol": "SASL_SSL",
         "sasl.mechanism": "SCRAM-SHA-256",
-        "sasl.username": "consumer",
+        "sasl.username": KAFKA_USERNAME,
         "sasl.password": os.environ["KAFKA_PASSWORD"],
         "group.id":           KAFKA_GROUP_ID,
         "auto.offset.reset":  KAFKA_AUTO_OFFSET_RESET,

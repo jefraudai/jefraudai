@@ -1,7 +1,9 @@
 FROM python:3.10-slim
 
-ENV KAFKA_BOOTSTRAP_SERVERS="d8c0ur6uk85ifvcgnlrg.any.eu-west-2.mpx.prd.cloud.redpanda.com:9092"
+#ENV KAFKA_BOOTSTRAP_SERVERS
+#ENV KAFKA_USERNAME="producer" -> By default
 ENV KAFKA_TOPIC="real-time-payments"
+
 ENV API_URL="https://sdacelo-real-time-fraud-detection.hf.space/current-transactions"
 ENV POLL_INTERVAL_SECONDS=5
 

@@ -5,11 +5,12 @@ FROM python:3.11-slim
 #ENV RESEND_API_KEY="re_xxxxxxxxx"
 
 # Variables d'environnement pour l'application
-ENV KAFKA_BOOTSTRAP_SERVERS="d8c0ur6uk85ifvcgnlrg.any.eu-west-2.mpx.prd.cloud.redpanda.com:9092"
+#ENV KAFKA_BOOTSTRAP_SERVERS
+#ENV KAFKA_USERNAME="consumer" -> By default
+ENV KAFKA_TOPIC="real-time-payments"
 #ENV RESEND_BASE_URL="https://api.resend.com/" -> By default
 ENV SMTP_USER="jenedai@sustcoop.fr"
 ENV ALERT_TO="jefraudai@free.fr"
-ENV KAFKA_TOPIC_IN="real-time-payments"
 
 # Variables techniquesd'environnement
 ENV PYTHONDONTWRITEBYTECODE=1

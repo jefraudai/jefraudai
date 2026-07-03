@@ -62,7 +62,6 @@ Automatic-Fraud-Detection
 # Améliorations possibles
 
 Amélioration de la documentation
-- Générer un Pdf avec un schéma de l'infrastructure et la justification des choix
 - Adapter les Schemas pour le format présentation
 - Déploiement de Docsify et Slidev
 - Déploiement de Slidev en 

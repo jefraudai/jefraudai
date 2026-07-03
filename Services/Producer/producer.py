@@ -8,6 +8,7 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
+KAFKA_USERNAME          = os.getenv("KAFKA_USERNAME") or "producer"
 KAFKA_TOPIC             = os.getenv("KAFKA_TOPIC")
 API_URL                 = os.getenv("API_URL")
 POLL_INTERVAL_SECONDS   = int(os.getenv("POLL_INTERVAL_SECONDS"))
@@ -20,7 +21,7 @@ producer = KafkaProducer(
   bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
   security_protocol="SASL_SSL",
   sasl_mechanism="SCRAM-SHA-256",
-  sasl_plain_username="producer",
+  sasl_plain_username=KAFKA_USERNAME,
   sasl_plain_password=os.environ["KAFKA_PASSWORD"],
 )
 hostname = str.encode(socket.gethostname())

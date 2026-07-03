@@ -52,7 +52,7 @@ graph TD
 
 ## Justification des choix d'architecture
 
-### Streaming avec Kafka (Redpanda)
+### Streaming avec Kafka (Redpanda/aiven)
 - **Pourquoi** : Traitement temps réel des transactions avec haute scalabilité
 - **Avantages** : Découplage producer/consumer, tolérance aux pannes, rétention des messages
 - **Alternative écartée** : REST API directe (pas de buffering), Airflow (batch, pas temps réel)
@@ -70,7 +70,7 @@ graph TD
 - **Alternative écartée** : NoSQL (pas nécessaire pour ce schéma simple)
 ### HuggingFace Spaces
 - **Pourquoi** : Déploiement simple de services Python
-- **Avantages** : Gratuit, Docker support, CI/CD intégré
+- **Avantages** : Gratuit, Docker support
 - **Alternative écartée** : AWS/GCP (coût)
 ### Grafana Cloud
 - **Pourquoi** : Monitoring centralisé
