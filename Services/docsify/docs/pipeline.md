@@ -20,14 +20,10 @@ graph TD
     
     subgraph "Phase 3: Préparation"
         P1[Split Train/Test]
-        P2[Detect Types]
-        P3[Numeric Pipeline]
-        P4[Categorical Pipeline]
-        P5[ColumnTransformer]
     end
     
     subgraph "Phase 4: Entraînement"
-        E1[AutoGluon Fit]
+        E1[AutoGluon</br>TabularPredictor]
         E2[Hyperparameter Tuning]
         E3[Model Selection]
     end
@@ -55,12 +51,7 @@ graph TD
     T1 --> T2
     T2 --> T3
     T3 --> P1
-    P1 --> P2
-    P2 --> P3
-    P2 --> P4
-    P3 --> P5
-    P4 --> P5
-    P5 --> E1
+    P1 --> E1
     E1 --> E2
     E2 --> E3
     E3 --> V1
@@ -108,7 +99,7 @@ graph TD
 - Détection des données vides
 - Comptage des valeurs manquantes
 
-## ✅ Étape 2: Validation des Données
+## ✅Validation des Données
 
 ### Data Validator
 
@@ -155,7 +146,7 @@ graph TD
 - `missing_threshold`: 10% (0.1)
 - `duplicate_threshold`: 5% (0.05)
 
-## 🧹 Étape 3: Transformation des Données
+## 🧹 Transformation des Données
 
 ### Data Transformer
 
@@ -272,6 +263,32 @@ graph TD
 
 ### Data Preparation
 
+**Mode AutoGluon (par défaut):**
+AutoGluon gère automatiquement la préparation des features. Aucun preprocessing manuel n'est requis:
+- Détection automatique des types de colonnes
+- Gestion native des features catégorielles
+- Imputation des valeurs manquantes
+- Scaling automatique selon le modèle
+
+```mermaid
+graph TD
+    subgraph "AutoGluon"    
+        AP1[Cleaned DataFrame]
+        AP2[AutoGluon Internal<br/>Feature Engineering]
+        AP3[Ready for Training]
+    end
+    
+    AP1 --> AP2
+    AP2 --> AP3
+    
+    style AP1 fill:#e1f5ff
+    style AP2 fill:#fff4e1
+    style AP3 fill:#e1ffe1
+```
+
+**Mode traditionnel (Random Forest, Linear Regression):**
+Pour les modèles non-AutoGluon, un preprocessing manuel est nécessaire:
+
 ```mermaid
 graph TD
     subgraph "Auto-detect Types"
@@ -304,12 +321,6 @@ graph TD
         TR3[Transform Test]
     end
     
-    subgraph "Feature Names"
-        FN1[Get Numeric Names]
-        FN2[Get Categorical Names]
-        FN3[Combine All Names]
-    end
-    
     AD1 --> AD2
     AD2 --> AD3
     AD2 --> AD4
@@ -325,24 +336,14 @@ graph TD
     CT3 --> TR1
     TR1 --> TR2
     TR1 --> TR3
-    TR2 --> FN1
-    TR3 --> FN2
-    FN1 --> FN3
-    FN2 --> FN3
     
     style AD1 fill:#e1f5ff
     style NP1 fill:#fff4e1
     style CP1 fill:#e1ffe1
     style CT1 fill:#f3e1ff
-    style FN1 fill:#ffe1e1
 ```
 
-**Mode AutoGluon:**
-- Prétraitement minimal
-- Conversion des colonnes catégorielles en dtype `category`
-- Pas de scaling ou encoding manuel
-
-## 🤖 Étape 6: Entraînement du Modèle
+## 🤖 Entraînement du Modèle
 
 ### Model Training
 

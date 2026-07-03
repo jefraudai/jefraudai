@@ -1,4 +1,4 @@
-# Automatic Fraud Detection - Documentation
+# Détection Automatisée de Fraudes - Documentation
 
 ## 📋 Vue d'ensemble
 
@@ -52,58 +52,6 @@ graph TD
     style EM fill:#ffe1e1
 ```
 
-## 🔄 Flux de Données
-
-```mermaid
-graph TD
-    subgraph "Événement Paiement"
-        E1[Transaction Initiale]
-        E2[Données Paiement]
-    end
-    
-    subgraph "Ingestion"
-        I1[Kafka Producer<br/>Python]
-        I2[Sérialisation JSON]
-        I3[Publication Topic]
-    end
-    
-    subgraph "Traitement Temps Réel"
-        T1[Kafka Consumer]
-        T2[Chargement Modèle MLflow]
-        T3[Prédiction Fraude]
-        T4[Score de Confiance]
-    end
-    
-    subgraph "Stockage"
-        S1[PostgreSQL]
-        S2[Table Predictions]
-    end
-    
-    subgraph "Alertes"
-        A1[Fraud Detected?]
-        A2[Email Resend]
-    end
-    
-    E1 --> E2
-    E2 --> I1
-    I1 --> I2
-    I2 --> I3
-    I3 --> T1
-    T1 --> T2
-    T2 --> T3
-    T3 --> T4
-    T4 --> S1
-    S1 --> S2
-    T4 --> A1
-    A1 -->|Oui| A2
-    
-    style E1 fill:#e1f5ff
-    style I1 fill:#fff4e1
-    style T1 fill:#e1ffe1
-    style S1 fill:#f3e1ff
-    style A1 fill:#ffe1e1
-```
-
 ## 🧠 Pipeline ML
 
 ```mermaid
@@ -147,7 +95,6 @@ graph TD
     M2 --> M3
     M3 --> E1
     E1 --> E2
-    E2 --> E3
     E1 --> O1
     O1 --> O2
     O2 --> O3
@@ -163,6 +110,7 @@ graph TD
 
 ### Features Utilisées
 
+Pour faciliter l'entrainement avec des ressources limités, certaines données ont volontairement été omises. La prédiction peut être amélioré en ajoutant ses données aux features.
 ```mermaid
 graph TD
     subgraph "Features Temporelles"
@@ -208,7 +156,6 @@ graph TD
     style T1 fill:#ffe1e1
 ```
 
-## 🔧 Configuration
 
 ## 🚀 Services de Déploiement
 

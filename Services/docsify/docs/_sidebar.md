@@ -8,9 +8,6 @@
 - **Pipeline ML**
   - [Pipeline d'Entraînement](pipeline.md)
   
-- **API**
-  - [Documentation API](api.md)
-  
 - **Configuration**
   - [Configuration du Projet](configuration.md)
   

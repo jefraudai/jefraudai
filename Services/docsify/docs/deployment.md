@@ -2,12 +2,10 @@
 
 ## 🚀 Vue d'ensemble du Déploiement
 
-Le projet est déployé sur HuggingFace Spaces avec des services cloud externes pour Kafka, PostgreSQL et le stockage.
+Le projet est déployé sur HuggingFace Spaces avec des services cloud externes pour Kafka, PostgreSQL et S3.
 
 ## 🏗️ Architecture de Déploiement
-
 ### Infrastructure Cloud
-
 ```mermaid
 graph TD
     subgraph "HuggingFace Spaces"
@@ -37,8 +35,6 @@ graph TD
     
     subgraph "Grafana Cloud"
         GF1[Dashboard]
-        GF2[Metrics Collection]
-        GF3[Alerting]
     end
     
     subgraph "Resend"
@@ -59,7 +55,6 @@ graph TD
     style NE1 fill:#e1ffe1
     style GF1 fill:#ffe1e1
 ```
-
 ## 🐳 Docker Configuration
 
 ### Producer Dockerfile
@@ -364,7 +359,6 @@ graph TD
     
     subgraph "Data Sources"
         DS1[PostgreSQL]
-        DS3[MLflow]
     end
     
     subgraph "Panels"
@@ -394,20 +388,14 @@ graph TD
     
     subgraph "Email Types"
         ET1[Fraud Alert]
-        ET2[System Alert]
-        ET3[Daily Report]
     end
     
     subgraph "Recipients"
         RE1[Security Team]
-        RE2[Operations Team]
-        RE3[Management]
     end
     
     RC1 --> ET1
     ET1 --> RE1
-    ET2 --> RE2
-    ET3 --> RE3
     
     style RC1 fill:#e1f5ff
     style ET1 fill:#fff4e1
@@ -435,15 +423,10 @@ graph TD
         D3[MLflow Space]
     end
     
-    CD4 --> CD5
     CD5 --> CD6
     CD6 --> D1
     CD6 --> D2
     CD6 --> D3
-    
-    style CD1 fill:#e1f5ff
-    style T1 fill:#fff4e1
-    style D1 fill:#e1ffe1
 ```
 
 ## 📊 Monitoring en Production
