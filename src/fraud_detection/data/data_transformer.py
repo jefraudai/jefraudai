@@ -44,7 +44,7 @@ def drop_columns(data: pd.DataFrame, columns_to_drop):
 
     all_columns_to_drop = unnamed_columns + columns_to_drop
     if not all_columns_to_drop:
-        logger.info("Aucune colonne valide à supprimer après vérification")
+        logger.info("Nettoyage des colonnes: aucune colonne à supprimer")
         return data.copy()
 
     transformed = data.drop(columns=all_columns_to_drop)

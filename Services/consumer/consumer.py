@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -11,6 +12,13 @@ from confluent_kafka import Consumer, KafkaException, KafkaError, OFFSET_BEGINNI
 from sqlalchemy import create_engine, text
 
 from fraud_detection.configuration import get_mlflow_config, load_config
+
+# Configuration du logger pour simplifier les logs
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s: %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 try:
     from fraud_detection.data.data_transformer import clean_data
@@ -47,9 +55,9 @@ def preprocess(transaction: dict) -> pd.DataFrame:
     if _HAS_FRAUD_LIB:
         try:
             df = clean_data(df)
-            print(f"[CONSUMER] data prétraitée : {df.columns.tolist()}")
+
         except Exception as e:
-            print(f"[CONSUMER] clean_data error: {e}")
+            logger.error(f"clean_data error: {e}")
 
     return df
 
@@ -73,7 +81,7 @@ def get_valid_offset(consumer, topic, partition, requested_offset):
         if low is None or low < 0:
             low = 0
         if high is None or high <= 0:
-            print(f"[CONSUMER] Aucune watermark valide pour {topic}:{partition}, fallback sur {KAFKA_AUTO_OFFSET_RESET}")
+            logger.warning(f"Aucune watermark valide pour {topic}:{partition}, fallback sur {KAFKA_AUTO_OFFSET_RESET}")
             return OFFSET_BEGINNING if KAFKA_AUTO_OFFSET_RESET == "earliest" else OFFSET_END
 
         # `high` is the upper watermark (last_offset + 1). Max valid offset is high - 1
@@ -81,27 +89,27 @@ def get_valid_offset(consumer, topic, partition, requested_offset):
         if requested_offset < low:
             return low
         if requested_offset > max_valid:
-            print(f"[CONSUMER] Requested offset {requested_offset} > max valid {max_valid}, using {max_valid}")
+            logger.warning(f"Requested offset {requested_offset} > max valid {max_valid}, using {max_valid}")
             return max_valid
         return requested_offset
     except Exception as e:
-        print(f"[CONSUMER] Erreur watermark pour {topic}:{partition} : {e}")
+        logger.warning(f"Erreur watermark pour {topic}:{partition} : {e}")
         return OFFSET_BEGINNING if KAFKA_AUTO_OFFSET_RESET == "earliest" else OFFSET_END
 
 
 def on_assign(consumer, partitions):
-    print(f"[CONSUMER] Partitions assignées : {[f'{p.topic}:{p.partition}' for p in partitions]}")
+    logger.info(f"Partitions assignées : {[f'{p.topic}:{p.partition}' for p in partitions]}")
     committed = consumer.committed(partitions, timeout=10.0)
     for idx, p in enumerate(partitions):
         committed_partition = committed[idx] if committed and idx < len(committed) else None
         if committed_partition is None or committed_partition.offset < 0:
             start_offset = OFFSET_BEGINNING if KAFKA_AUTO_OFFSET_RESET == "earliest" else OFFSET_END
-            print(f"[CONSUMER] Aucun offset committé pour {p.topic}:{p.partition}, positionnement sur {start_offset}")
+            logger.info(f"Aucun offset committé pour {p.topic}:{p.partition}, positionnement sur {start_offset}")
             partitions[idx].offset = start_offset
         else:
             valid_offset = get_valid_offset(consumer, p.topic, p.partition, committed_partition.offset)
             if valid_offset != committed_partition.offset:
-                print(f"[CONSUMER] Offset committé invalide {p.topic}:{p.partition} {committed_partition.offset} -> {valid_offset}")
+                logger.info(f"Offset committé invalide {p.topic}:{p.partition} {committed_partition.offset} -> {valid_offset}")
             partitions[idx].offset = valid_offset
     consumer.assign(partitions)
 
@@ -109,7 +117,7 @@ def on_assign(consumer, partitions):
 # Envoie Email d'alerte en cas de fraude détectée
 def send_alert_email(transaction: dict, score: float):
     if not SMTP_USER or not ALERT_TO:
-        print("[CONSUMER] Email non configuré, alerte ignorée")
+        logger.info("Email non configuré, alerte ignorée")
         return
 
     trans_num = transaction.get("trans_num", "N/A")
@@ -146,10 +154,10 @@ def send_alert_email(transaction: dict, score: float):
             subject=msg["Subject"],
             html=msg.as_string(),
         )
-        print("E-mail envoyé avec succès!")
-        print(result)
+        logger.info("E-mail envoyé avec succès!")
+        logger.info(result)
     except Exception as e:
-        print(f"[CONSUMER] Echec envoi email : {e}")
+        logger.error(f"Echec envoi email : {e}")
 
 
 # Stockage des résultats dans PostgreSQL
@@ -202,27 +210,27 @@ def create_predictions_table(engine):
 # Main
 def main():
     if InferenceModel is None:
-        print("[CONSUMER] Impossible d'importer InferenceModel, vérifiez le package fraud_detection")
+        logger.error("Impossible d'importer InferenceModel, vérifiez le package fraud_detection")
         return
 
     model_name = MLFLOW_MODEL_NAME or infer_model_name(MLFLOW_MODEL_URI)
     if not model_name:
-        print("[CONSUMER] Nom du modèle MLflow non défini")
+        logger.error("Nom du modèle MLflow non défini")
         return
 
-    print(f"[CONSUMER] Chargement du modèle MLflow '{model_name}' via alias '{MLFLOW_PROD_ALIAS}'")
+    logger.info(f"Chargement du modèle MLflow '{model_name}' via alias '{MLFLOW_PROD_ALIAS}'")
     inference_model = InferenceModel(
         mlflow_tracking_uri=MLFLOW_TRACKING_URI,
         experiment_name=MLFLOW_EXPERIMENT_NAME,
     )
     if not inference_model.load_production_model(model_name, alias_prod=MLFLOW_PROD_ALIAS):
-        print("[CONSUMER] Échec du chargement du modèle en production")
+        logger.error("Échec du chargement du modèle en production")
         return
-    print(f"[CONSUMER] Modèle chargé avec succès : {inference_model.get_model_info()}")
+    logger.info(f"Modèle chargé avec succès : {inference_model.get_model_info()}")
 
     engine = create_engine(DB_URI)
     create_predictions_table(engine)
-    print("[CONSUMER] Connexion PostgreSQL établie")
+    logger.info("Connexion PostgreSQL établie")
 
     # SSL configuration for Aiven
     consumer_config = {
@@ -273,7 +281,7 @@ def main():
     
     consumer = Consumer(consumer_config)
     consumer.subscribe([KAFKA_TOPIC], on_assign=on_assign)
-    print(f"[CONSUMER] Abonné au topic : {KAFKA_TOPIC} [group={KAFKA_GROUP_ID}]")
+    logger.info(f"Abonné au topic : {KAFKA_TOPIC} [group={KAFKA_GROUP_ID}]")
  
     try:
         while True:
@@ -284,7 +292,7 @@ def main():
             if msg.error():
                 error = msg.error()
                 if error.code() == KafkaError.OFFSET_OUT_OF_RANGE:
-                    print(f"[CONSUMER] ERREUR OFFSET : {error}")
+                    logger.warning(f"ERREUR OFFSET : {error}")
                     partitions = consumer.assignment()
                     if partitions:
                         committed = consumer.committed(partitions, timeout=10.0)
@@ -292,22 +300,22 @@ def main():
                             committed_partition = committed[idx] if committed and idx < len(committed) else None
                             requested_offset = committed_partition.offset if committed_partition and committed_partition.offset >= 0 else 0
                             valid_offset = get_valid_offset(consumer, p.topic, p.partition, requested_offset)
-                            print(f"[CONSUMER] Réinitialisation offset {p.topic}:{p.partition} -> {valid_offset}")
+                            logger.info(f"Réinitialisation offset {p.topic}:{p.partition} -> {valid_offset}")
                             p.offset = valid_offset
                         consumer.assign(partitions)
                         continue
-                    print("[CONSUMER] Aucune partition assignée pour réinitialiser l'offset")
+                    logger.warning("Aucune partition assignée pour réinitialiser l'offset")
                     continue
                 raise KafkaException(error)
  
             transaction  = json.loads(msg.value().decode("utf-8"))
             trans_num    = transaction.get("trans_num", "unknown")
-            print(f"[CONSUMER] Message reçu : {trans_num}")
+            logger.info(f"Message reçu : {trans_num}")
  
             features      = preprocess(transaction)
             predictions, confidence_scores = inference_model.predict(features)
             if predictions is None:
-                print(f"[CONSUMER] Échec de prédiction pour {trans_num}")
+                logger.error(f"Échec de prédiction pour {trans_num}")
                 continue
 
             pred_value = int(np.asarray(predictions).ravel()[0])
@@ -317,7 +325,7 @@ def main():
             else:
                 fraud_score = float(pred_value)
                 is_fraud_pred = pred_value
-            print(f"[CONSUMER] {trans_num} | score={fraud_score:.4f} | is_fraud={is_fraud_pred}")
+            logger.info(f"{trans_num} | score={fraud_score:.4f} | is_fraud={is_fraud_pred}")
  
             result = {
                 "trans_num":     trans_num,
@@ -332,11 +340,11 @@ def main():
             save_to_postgres(engine, transaction, is_fraud_pred, fraud_score)
  
             if is_fraud_pred == 1:
-                print(f"[CONSUMER] FRAUDE DETECTEE : {trans_num} (score={fraud_score:.4f})")
+                logger.warning(f"FRAUDE DETECTEE : {trans_num} (score={fraud_score:.4f})")
                 send_alert_email(transaction, fraud_score)
  
     except KeyboardInterrupt:
-        print("[CONSUMER] Arrêt")
+        logger.info("Arrêt")
     finally:
         consumer.close()
         engine.dispose()

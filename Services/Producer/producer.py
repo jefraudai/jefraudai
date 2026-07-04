@@ -25,6 +25,16 @@ producer_config = {
   "sasl.password": os.environ["KAFKA_PASSWORD"],
   "ssl.endpoint.identification.algorithm": "none",
   "enable.ssl.certificate.verification": False,
+  # Timeout configurations
+  "socket.timeout.ms": 10000,
+  "request.timeout.ms": 30000,
+  "delivery.timeout.ms": 120000,
+  "message.timeout.ms": 120000,
+  "reconnect.backoff.ms": 1000,
+  "reconnect.backoff.max.ms": 10000,
+  # Connection retries
+  "message.send.max.retries": 5,
+  "retry.backoff.ms": 100,
 }
 
 # Helper to write certificate content to temp file
@@ -54,6 +64,17 @@ if access_cert and access_key:
 
 producer = Producer(producer_config)
 hostname = str.encode(socket.gethostname())
+
+def verify_connection(producer, timeout=30):
+    """Verify Kafka connection by triggering metadata refresh."""
+    try:
+        producer.poll(timeout=0)
+        cluster_metadata = producer.list_topics(timeout=timeout)
+        print(f"[PRODUCER] Connection verified. Cluster ID: {cluster_metadata.cluster_id}")
+        return True
+    except Exception as e:
+        print(f"[PRODUCER] Connection verification failed: {e}")
+        return False
 
 def delivery_report(err, msg):
   """Called once for each produced message to indicate delivery result."""
@@ -89,19 +110,41 @@ def fetch_transaction() -> dict | None:
       print(f"[PRODUCER] Format de réponse inattendu : {e}")
       return None
 
+# Verify connection before starting
+if not verify_connection(producer):
+    print("[PRODUCER] WARNING: Connection verification failed. Proceeding anyway...")
+
 # Produce n messages asynchronously
 for i in range(1000):
   transaction = fetch_transaction()
   if transaction:
     trans_num = transaction.get("trans_num", "unknown")
     print(f"[PRODUCER] Transaction récupérée : {trans_num} | montant={transaction.get('amt')} | marchand={transaction.get('merchant')}")
-    producer.produce(
-      KAFKA_TOPIC,
-      key=trans_num.encode("utf-8"),
-      value=json.dumps(transaction).encode("utf-8"),
-      callback=delivery_report
-    )
-    producer.poll(0)  # Trigger delivery reports
+    try:
+        producer.produce(
+          KAFKA_TOPIC,
+          key=trans_num.encode("utf-8"),
+          value=json.dumps(transaction).encode("utf-8"),
+          callback=delivery_report
+        )
+        producer.poll(0)  # Trigger delivery reports
+    except KafkaException as e:
+        print(f"[PRODUCER] Kafka error producing message: {e}")
+        print(f"[PRODUCER] Retrying connection verification...")
+        if verify_connection(producer, timeout=10):
+            print(f"[PRODUCER] Connection recovered, retrying message")
+            try:
+                producer.produce(
+                  KAFKA_TOPIC,
+                  key=trans_num.encode("utf-8"),
+                  value=json.dumps(transaction).encode("utf-8"),
+                  callback=delivery_report
+                )
+                producer.poll(0)
+            except Exception as retry_e:
+                print(f"[PRODUCER] Retry failed: {retry_e}")
+        else:
+            print(f"[PRODUCER] Connection still unavailable, skipping message")
   else:
     print(f"[PRODUCER] Aucune transaction récupérée pour le message #{i}")
     time.sleep(POLL_INTERVAL_SECONDS)
