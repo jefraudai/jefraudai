@@ -1,12 +1,3 @@
----
-title: Documentation MLOps Jinsudai
-emoji: 👀
-colorFrom: indigo
-colorTo: blue
-sdk: docker
-pinned: false
----
-
 # Documentation
 
 ## 🌐 Documentation en ligne

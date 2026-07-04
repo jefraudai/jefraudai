@@ -301,7 +301,7 @@ def main():
         "reconnect.backoff.ms": 1000,
         "reconnect.backoff.max.ms": 10000,
         # Connection retries
-        "fetch.wait.max.ms": 5000,
+        "fetch.wait.max.ms": 12000,  # 12 seconds to match producer rate limit
         # SSL-specific configurations
         "ssl.key.password": "",
     }

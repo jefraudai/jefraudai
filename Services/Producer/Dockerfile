@@ -5,7 +5,7 @@ FROM python:3.10-slim
 ENV KAFKA_TOPIC="real-time-payments"
 
 ENV API_URL="https://sdacelo-real-time-fraud-detection.hf.space/current-transactions"
-ENV POLL_INTERVAL_SECONDS=5
+ENV POLL_INTERVAL_SECONDS=12
 
 WORKDIR /app
 

@@ -186,7 +186,8 @@ for i in range(1000):
             print(f"[PRODUCER] Connection still unavailable, skipping message")
   else:
     print(f"[PRODUCER] Aucune transaction récupérée pour le message #{i}")
-    time.sleep(POLL_INTERVAL_SECONDS)
+  # Always sleep to respect API rate limit (5 calls/minute = 12 seconds minimum)
+  time.sleep(POLL_INTERVAL_SECONDS)
 
 # Flush all messages before closing
 producer.flush()
