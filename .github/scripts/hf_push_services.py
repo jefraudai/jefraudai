@@ -80,8 +80,9 @@ def push_service_to_hf(api, service, space_id):
         return False
 
     try:
-        # Copier src pour FastApi et JinsudAPI
-        if service_name in ["consumer,Producer"]:
+        # Copier src pour certains services -> à configurer dans le fichier yaml
+        print(f"[*] Checking if src copy needed for '{service_name}'")
+        if service_name in ["consumer", "Producer"]:
             src_dir = repo_root / "src"
             service_src_path = service_path / "src"
             if src_dir.exists():
@@ -89,6 +90,8 @@ def push_service_to_hf(api, service, space_id):
                     shutil.rmtree(service_src_path)
                 shutil.copytree(src_dir, service_src_path)
                 print(f"[*] Copied src to {service_name}")
+            else:
+                print(f"[WARN] src directory not found: {src_dir}")
 
         # Upload the entire service directory to the space
         api.upload_folder(
