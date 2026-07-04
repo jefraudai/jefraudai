@@ -14,11 +14,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from huggingface_hub import HfApi
 
-# Load .env.secrets from repository root
-repo_root = Path(__file__).parent.parent.parent
-load_dotenv(repo_root / ".env.secrets")
-
-
 def get_services():
     """Read service list from config.yaml"""
     from hf_config import get_services_names
