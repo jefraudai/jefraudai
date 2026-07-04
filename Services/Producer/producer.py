@@ -4,8 +4,7 @@ import time
 import requests
 import json
 from datetime import datetime
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
+from confluent_kafka import Producer, KafkaException
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
 KAFKA_USERNAME          = os.getenv("KAFKA_USERNAME") or "producer"
@@ -19,13 +18,13 @@ POLL_INTERVAL_SECONDS   = int(os.getenv("POLL_INTERVAL_SECONDS"))
 
 # SSL configuration for Aiven
 producer_config = {
-  "bootstrap_servers": KAFKA_BOOTSTRAP_SERVERS,
-  "security_protocol": "SASL_SSL",
-  "sasl_mechanism": "SCRAM-SHA-256",
-  "sasl_plain_username": KAFKA_USERNAME,
-  "sasl_plain_password": os.environ["KAFKA_PASSWORD"],
-  "ssl_check_hostname": False,  # Disable hostname verification for Aiven
-  "ssl_cafile": None,  # Disable CA verification for Aiven
+  "bootstrap.servers": KAFKA_BOOTSTRAP_SERVERS,
+  "security.protocol": "SASL_SSL",
+  "sasl.mechanism": "PLAIN",
+  "sasl.username": KAFKA_USERNAME,
+  "sasl.password": os.environ["KAFKA_PASSWORD"],
+  "ssl.endpoint.identification.algorithm": "none",
+  "enable.ssl.certificate.verification": False,
 }
 
 # Helper to write certificate content to temp file
@@ -39,14 +38,8 @@ def write_cert_to_file(content, suffix):
     return path
 
 # Add mTLS certificates if provided (for Aiven)
+# Note: CA verification is disabled, so KAFKA_CA_CERT is not used
 cert_files = []
-ca_cert = os.getenv("KAFKA_CA_CERT")
-if ca_cert:
-    ca_path = write_cert_to_file(ca_cert, ".crt")
-    if ca_path != ca_cert:
-        cert_files.append(ca_path)
-    producer_config["ssl_cafile"] = ca_path
-
 access_cert = os.getenv("KAFKA_ACCESS_CERT")
 access_key = os.getenv("KAFKA_ACCESS_KEY")
 if access_cert and access_key:
@@ -56,17 +49,18 @@ if access_cert and access_key:
         cert_files.append(cert_path)
     if key_path != access_key:
         cert_files.append(key_path)
-    producer_config["ssl_certfile"] = cert_path
-    producer_config["ssl_keyfile"] = key_path
+    producer_config["ssl.certificate.location"] = cert_path
+    producer_config["ssl.key.location"] = key_path
 
-producer = KafkaProducer(**producer_config)
+producer = Producer(producer_config)
 hostname = str.encode(socket.gethostname())
 
-def on_success(metadata):
-  print(f"Sent to topic '{metadata.topic}' at offset {metadata.offset}")
-
-def on_error(e):
-  print(f"Error sending message: {e}")
+def delivery_report(err, msg):
+  """Called once for each produced message to indicate delivery result."""
+  if err is not None:
+    print(f"[PRODUCER] Error delivering message: {err}")
+  else:
+    print(f"[PRODUCER] Sent to topic '{msg.topic()}' [{msg.partition()}] at offset {msg.offset()}")
 
 def fetch_transaction() -> dict | None:
   try:
@@ -101,16 +95,17 @@ for i in range(1000):
   if transaction:
     trans_num = transaction.get("trans_num", "unknown")
     print(f"[PRODUCER] Transaction récupérée : {trans_num} | montant={transaction.get('amt')} | marchand={transaction.get('merchant')}")
-    future = producer.send(
+    producer.produce(
       KAFKA_TOPIC,
       key=trans_num.encode("utf-8"),
-      value=json.dumps(transaction).encode("utf-8")
+      value=json.dumps(transaction).encode("utf-8"),
+      callback=delivery_report
     )
-    future.add_callback(on_success)
-    future.add_errback(on_error)
+    producer.poll(0)  # Trigger delivery reports
   else:
     print(f"[PRODUCER] Aucune transaction récupérée pour le message #{i}")
     time.sleep(POLL_INTERVAL_SECONDS)
 
+# Flush all messages before closing
 producer.flush()
-producer.close()
+print("[PRODUCER] All messages delivered, producer closed")

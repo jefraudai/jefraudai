@@ -28,8 +28,7 @@ mlflow_config = get_mlflow_config(config)
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
 KAFKA_USERNAME          = os.getenv("KAFKA_USERNAME") or "consumer"
-KAFKA_TOPIC_IN          = os.getenv("KAFKA_TOPIC_IN")
-KAFKA_TOPIC_OUT         = os.getenv("KAFKA_TOPIC_OUT")
+KAFKA_TOPIC             = os.getenv("KAFKA_TOPIC")
 MLFLOW_TRACKING_URI     = mlflow_config.get("tracking_uri")
 MLFLOW_MODEL_URI        = os.getenv("MLFLOW_MODEL_URI")
 MLFLOW_MODEL_NAME       = os.getenv("MLFLOW_MODEL_NAME") or mlflow_config.get("model_name")
@@ -224,12 +223,12 @@ def main():
     engine = create_engine(DB_URI)
     create_predictions_table(engine)
     print("[CONSUMER] Connexion PostgreSQL établie")
- 
+
     # SSL configuration for Aiven
     consumer_config = {
         "bootstrap.servers":  KAFKA_BOOTSTRAP_SERVERS,
         "security.protocol": "SASL_SSL",
-        "sasl.mechanism": "SCRAM-SHA-256",
+        "sasl.mechanism": "PLAIN",
         "sasl.username": KAFKA_USERNAME,
         "sasl.password": os.environ["KAFKA_PASSWORD"],
         "group.id":           KAFKA_GROUP_ID,
@@ -273,8 +272,8 @@ def main():
         consumer_config["ssl.key.location"] = key_path
     
     consumer = Consumer(consumer_config)
-    consumer.subscribe([KAFKA_TOPIC_IN], on_assign=on_assign)
-    print(f"[CONSUMER] Abonné au topic : {KAFKA_TOPIC_IN} [group={KAFKA_GROUP_ID}]")
+    consumer.subscribe([KAFKA_TOPIC], on_assign=on_assign)
+    print(f"[CONSUMER] Abonné au topic : {KAFKA_TOPIC} [group={KAFKA_GROUP_ID}]")
  
     try:
         while True:
