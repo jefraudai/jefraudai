@@ -2,10 +2,10 @@
 services:
   # Liste des services internes (HuggingFace Spaces)
   names:    
-    - "jfraudai/docsify"
-    - "jfraudai/slidev"
-    - "jfraudai/consumer"
-    - "jfraudai/producer"
+    - "jefraudai/docsify"
+    - "jefraudai/slidev"
+    - "jefraudai/consumer"
+    - "jefraudai/producer"
   # Liste des satellites (HuggingFace Spaces)
   satellites:
     - "mlflai/MLflow"
