@@ -23,7 +23,6 @@ producer = KafkaProducer(
   sasl_mechanism="SCRAM-SHA-256",
   sasl_plain_username=KAFKA_USERNAME,
   sasl_plain_password=os.environ["KAFKA_PASSWORD"],
-  ssl_cafile=os.getenv("KAFKA_CA_CERT", "/etc/ssl/certs/ca-certificates.crt"),
   ssl_check_hostname=False,  # Disable hostname verification for Aiven
 )
 hostname = str.encode(socket.gethostname())

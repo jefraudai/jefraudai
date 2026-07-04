@@ -236,9 +236,8 @@ def main():
         "enable.auto.commit": True,
         "isolation.level":    "read_committed",  # Lire uniquement les messages confirmés
         "session.timeout.ms": 30000,  # 30 secondes pour détecter les pannes
-        # SSL configuration for Aiven
-        "ssl.ca.location": os.getenv("KAFKA_CA_CERT", "/etc/ssl/certs/ca-certificates.crt"),
-        "ssl.endpoint.identification.algorithm": "none",  # Disable hostname verification for Aiven
+        # SSL configuration for Aiven - disable CA verification
+        "ssl.endpoint.identification.algorithm": "none",  # Disable hostname verification
     })
     consumer.subscribe([KAFKA_TOPIC_IN], on_assign=on_assign)
     print(f"[CONSUMER] Abonné au topic : {KAFKA_TOPIC_IN} [group={KAFKA_GROUP_ID}]")
