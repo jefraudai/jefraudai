@@ -81,8 +81,7 @@ def push_service_to_hf(api, service, space_id):
 
     try:
         # Copier src pour certains services -> à configurer dans le fichier yaml
-        print(f"[*] Checking if src copy needed for '{service_name}'")
-        if service_name in ["consumer", "Producer"]:
+        if service_name in ["consumer,Producer"]:
             src_dir = repo_root / "src"
             service_src_path = service_path / "src"
             if src_dir.exists():

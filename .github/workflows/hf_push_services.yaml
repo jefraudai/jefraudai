@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'Services/**'
+      - '.github/workflows/hf_push_services.yaml'
       - '.github/scripts/hf_push_services.py'
       - '.github/scripts/config.yaml'
   workflow_dispatch:
@@ -34,6 +35,7 @@ jobs:
           MLFLOW_HF_TOKEN: ${{ secrets.MLFLOW_HF_TOKEN }}
           KAFKA_BOOTSTRAP_SERVERS: ${{ secrets.KAFKA_BOOTSTRAP_SERVERS }}
           KAFKA_PASSWORD: ${{ secrets.KAFKA_PASSWORD }}
+          POSTGRES_URI: ${{ secrets.POSTGRES_URI }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             python .github/scripts/hf_push_services.py --force-push
