@@ -237,7 +237,14 @@ class InferenceModel:
             if hasattr(self.model, 'features'):
                 expected_features = self.model.features()
                 X_data = X_data[expected_features]
-                predictions = self.model.predict(X_data)
+                try:
+                    predictions = self.model.predict(X_data)
+                except FileNotFoundError as e:
+                    logger.error(f"Erreur AutoGluon (chemin fichier): {e}")
+                    logger.error("Ceci peut être dû à un modèle entraîné sur Windows et exécuté sur Linux")
+                    # Fallback: essayer de prédire sans filtrage de features
+                    logger.warning("Tentative de prédiction sans filtrage de features...")
+                    predictions = self.model.predict(X_data)
             # MLflow pyfunc
             elif hasattr(self.model, 'predict'):
                 predictions = self.model.predict(X_data)
