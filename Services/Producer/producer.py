@@ -17,14 +17,48 @@ POLL_INTERVAL_SECONDS   = int(os.getenv("POLL_INTERVAL_SECONDS"))
 #load_dotenv(find_dotenv(".env"), override=True)      # config
 #load_dotenv(find_dotenv(".env.secrets"), override=True)   # secrets only useful on local environment
 
-producer = KafkaProducer(
-  bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
-  security_protocol="SASL_SSL",
-  sasl_mechanism="SCRAM-SHA-256",
-  sasl_plain_username=KAFKA_USERNAME,
-  sasl_plain_password=os.environ["KAFKA_PASSWORD"],
-  ssl_check_hostname=False,  # Disable hostname verification for Aiven
-)
+# SSL configuration for Aiven
+producer_config = {
+  "bootstrap_servers": KAFKA_BOOTSTRAP_SERVERS,
+  "security_protocol": "SASL_SSL",
+  "sasl_mechanism": "SCRAM-SHA-256",
+  "sasl_plain_username": KAFKA_USERNAME,
+  "sasl_plain_password": os.environ["KAFKA_PASSWORD"],
+  "ssl_check_hostname": False,  # Disable hostname verification for Aiven
+}
+
+# Helper to write certificate content to temp file
+def write_cert_to_file(content, suffix):
+    if not content or content.startswith("/"):
+        return content  # Already a path or empty
+    import tempfile
+    fd, path = tempfile.mkstemp(suffix=suffix, text=True)
+    with os.fdopen(fd, 'w') as f:
+        f.write(content)
+    return path
+
+# Add mTLS certificates if provided (for Aiven)
+cert_files = []
+ca_cert = os.getenv("KAFKA_CA_CERT")
+if ca_cert:
+    ca_path = write_cert_to_file(ca_cert, ".crt")
+    if ca_path != ca_cert:
+        cert_files.append(ca_path)
+    producer_config["ssl_cafile"] = ca_path
+
+access_cert = os.getenv("KAFKA_ACCESS_CERT")
+access_key = os.getenv("KAFKA_ACCESS_KEY")
+if access_cert and access_key:
+    cert_path = write_cert_to_file(access_cert, ".crt")
+    key_path = write_cert_to_file(access_key, ".key")
+    if cert_path != access_cert:
+        cert_files.append(cert_path)
+    if key_path != access_key:
+        cert_files.append(key_path)
+    producer_config["ssl_certfile"] = cert_path
+    producer_config["ssl_keyfile"] = key_path
+
+producer = KafkaProducer(**producer_config)
 hostname = str.encode(socket.gethostname())
 
 def on_success(metadata):

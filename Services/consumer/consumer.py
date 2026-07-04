@@ -225,7 +225,8 @@ def main():
     create_predictions_table(engine)
     print("[CONSUMER] Connexion PostgreSQL établie")
  
-    consumer = Consumer({
+    # SSL configuration for Aiven
+    consumer_config = {
         "bootstrap.servers":  KAFKA_BOOTSTRAP_SERVERS,
         "security.protocol": "SASL_SSL",
         "sasl.mechanism": "SCRAM-SHA-256",
@@ -236,9 +237,41 @@ def main():
         "enable.auto.commit": True,
         "isolation.level":    "read_committed",  # Lire uniquement les messages confirmés
         "session.timeout.ms": 30000,  # 30 secondes pour détecter les pannes
-        # SSL configuration for Aiven - disable CA verification
         "ssl.endpoint.identification.algorithm": "none",  # Disable hostname verification
-    })
+    }
+    
+    # Helper to write certificate content to temp file
+    def write_cert_to_file(content, suffix):
+        if not content or content.startswith("/"):
+            return content  # Already a path or empty
+        import tempfile
+        fd, path = tempfile.mkstemp(suffix=suffix, text=True)
+        with os.fdopen(fd, 'w') as f:
+            f.write(content)
+        return path
+    
+    # Add mTLS certificates if provided (for Aiven)
+    cert_files = []
+    ca_cert = os.getenv("KAFKA_CA_CERT")
+    if ca_cert:
+        ca_path = write_cert_to_file(ca_cert, ".crt")
+        if ca_path != ca_cert:
+            cert_files.append(ca_path)
+        consumer_config["ssl.ca.location"] = ca_path
+    
+    access_cert = os.getenv("KAFKA_ACCESS_CERT")
+    access_key = os.getenv("KAFKA_ACCESS_KEY")
+    if access_cert and access_key:
+        cert_path = write_cert_to_file(access_cert, ".crt")
+        key_path = write_cert_to_file(access_key, ".key")
+        if cert_path != access_cert:
+            cert_files.append(cert_path)
+        if key_path != access_key:
+            cert_files.append(key_path)
+        consumer_config["ssl.certificate.location"] = cert_path
+        consumer_config["ssl.key.location"] = key_path
+    
+    consumer = Consumer(consumer_config)
     consumer.subscribe([KAFKA_TOPIC_IN], on_assign=on_assign)
     print(f"[CONSUMER] Abonné au topic : {KAFKA_TOPIC_IN} [group={KAFKA_GROUP_ID}]")
  
