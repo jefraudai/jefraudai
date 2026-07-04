@@ -25,6 +25,7 @@ producer_config = {
   "sasl_plain_username": KAFKA_USERNAME,
   "sasl_plain_password": os.environ["KAFKA_PASSWORD"],
   "ssl_check_hostname": False,  # Disable hostname verification for Aiven
+  "ssl_cafile": None,  # Disable CA verification for Aiven
 }
 
 # Helper to write certificate content to temp file

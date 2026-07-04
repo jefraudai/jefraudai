@@ -238,6 +238,7 @@ def main():
         "isolation.level":    "read_committed",  # Lire uniquement les messages confirmés
         "session.timeout.ms": 30000,  # 30 secondes pour détecter les pannes
         "ssl.endpoint.identification.algorithm": "none",  # Disable hostname verification
+        "enable.ssl.certificate.verification": False,  # Disable CA verification for Aiven
     }
     
     # Helper to write certificate content to temp file
