@@ -7,7 +7,7 @@ from datetime import datetime
 from confluent_kafka import Producer, KafkaException
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
-KAFKA_USERNAME          = os.getenv("KAFKA_USERNAME") or "producer"
+KAFKA_USERNAME          = os.getenv("KAFKA_USERNAME") or "avnadmin"
 KAFKA_TOPIC             = os.getenv("KAFKA_TOPIC")
 API_URL                 = os.getenv("API_URL")
 POLL_INTERVAL_SECONDS   = int(os.getenv("POLL_INTERVAL_SECONDS"))
@@ -62,6 +62,42 @@ if access_cert and access_key:
     producer_config["ssl.certificate.location"] = cert_path
     producer_config["ssl.key.location"] = key_path
 
+def test_network_connectivity(host, port, timeout=5):
+    """Test basic TCP connectivity to a broker."""
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(timeout)
+        result = sock.connect_ex((host, port))
+        sock.close()
+        if result == 0:
+            print(f"[PRODUCER] Network connectivity OK: {host}:{port}")
+            return True
+        else:
+            print(f"[PRODUCER] Network connectivity FAILED: {host}:{port} (error code: {result})")
+            return False
+    except Exception as e:
+        print(f"[PRODUCER] Network connectivity error for {host}:{port}: {e}")
+        return False
+
+def diagnose_kafka_connection():
+    """Diagnose Kafka connection issues."""
+    print("[PRODUCER] === Kafka Connection Diagnostics ===")
+    print(f"[PRODUCER] Bootstrap servers: {KAFKA_BOOTSTRAP_SERVERS}")
+    print(f"[PRODUCER] Username: {KAFKA_USERNAME}")
+    print(f"[PRODUCER] Topic: {KAFKA_TOPIC}")
+    
+    # Test each broker
+    brokers = KAFKA_BOOTSTRAP_SERVERS.split(",")
+    for broker in brokers:
+        # Parse host:port from sasl_ssl://host:port
+        if "://" in broker:
+            broker = broker.split("://")[1]
+        if ":" in broker:
+            host, port = broker.split(":")
+            port = int(port)
+            test_network_connectivity(host, port)
+    print("[PRODUCER] === End Diagnostics ===")
+
 producer = Producer(producer_config)
 hostname = str.encode(socket.gethostname())
 
@@ -109,6 +145,9 @@ def fetch_transaction() -> dict | None:
   except (KeyError, IndexError) as e:
       print(f"[PRODUCER] Format de réponse inattendu : {e}")
       return None
+
+# Run diagnostics before connection verification
+diagnose_kafka_connection()
 
 # Verify connection before starting
 if not verify_connection(producer):

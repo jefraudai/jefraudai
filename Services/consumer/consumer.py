@@ -35,7 +35,7 @@ config = load_config()
 mlflow_config = get_mlflow_config(config)
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
-KAFKA_USERNAME          = os.getenv("KAFKA_USERNAME") or "consumer"
+KAFKA_USERNAME          = os.getenv("KAFKA_USERNAME") or "avnadmin"
 KAFKA_TOPIC             = os.getenv("KAFKA_TOPIC")
 MLFLOW_TRACKING_URI     = mlflow_config.get("tracking_uri")
 MLFLOW_MODEL_URI        = os.getenv("MLFLOW_MODEL_URI")
