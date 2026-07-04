@@ -199,6 +199,8 @@ def send_alert_email(transaction: dict, score: float):
 
 # Stockage des résultats dans PostgreSQL
 def save_to_postgres(engine, transaction: dict, is_fraud_pred: int, fraud_score: float):
+    trans_num = transaction.get("trans_num", "unknown")
+    logger.info(f"Saving to PostgreSQL: {trans_num}")
     query = text("""
         INSERT INTO predictions
             (trans_num, cc_num, merchant, category, amt, city, state,
@@ -208,20 +210,24 @@ def save_to_postgres(engine, transaction: dict, is_fraud_pred: int, fraud_score:
              :is_fraud_true, :is_fraud_pred, :fraud_score)
         ON CONFLICT (trans_num) DO NOTHING
     """)
-    with engine.connect() as conn:
-        conn.execute(query, {
-            "trans_num":     transaction.get("trans_num"),
-            "cc_num":        transaction.get("cc_num"),
-            "merchant":      transaction.get("merchant"),
-            "category":      transaction.get("category"),
-            "amt":           transaction.get("amt"),
-            "city":          transaction.get("city"),
-            "state":         transaction.get("state"),
-            "is_fraud_true": transaction.get("is_fraud", -1),
-            "is_fraud_pred": is_fraud_pred,
-            "fraud_score":   fraud_score,
-        })
-        conn.commit()
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(query, {
+                "trans_num":     transaction.get("trans_num"),
+                "cc_num":        transaction.get("cc_num"),
+                "merchant":      transaction.get("merchant"),
+                "category":      transaction.get("category"),
+                "amt":           transaction.get("amt"),
+                "city":          transaction.get("city"),
+                "state":         transaction.get("state"),
+                "is_fraud_true": transaction.get("is_fraud", -1),
+                "is_fraud_pred": is_fraud_pred,
+                "fraud_score":   fraud_score,
+            })
+            conn.commit()
+            logger.info(f"Successfully saved to PostgreSQL: {trans_num}")
+    except Exception as e:
+        logger.error(f"Failed to save to PostgreSQL for {trans_num}: {e}")
 
 def create_predictions_table(engine):
     ddl = """
