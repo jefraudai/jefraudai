@@ -294,11 +294,13 @@ def main():
         "enable.ssl.certificate.verification": False,  # Disable CA verification for Aiven
         # Timeout configurations
         "socket.timeout.ms": 10000,
-        "request.timeout.ms": 30000,
         "reconnect.backoff.ms": 1000,
         "reconnect.backoff.max.ms": 10000,
         # Connection retries
         "fetch.wait.max.ms": 5000,
+        # SSL-specific configurations
+        "ssl.key.password": "",
+        "debug": "broker,topic,msg",  # Enable debug logging
     }
     
     # Helper to write certificate content to temp file
