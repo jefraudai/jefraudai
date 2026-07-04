@@ -233,9 +233,17 @@ class InferenceModel:
             return None, None
         
         try:
-            expected_features = self.model.features()
-            X_data = X_data[expected_features]
-            predictions = self.model.predict(X_data)
+            # AutoGluon TabularPredictor
+            if hasattr(self.model, 'features'):
+                expected_features = self.model.features()
+                X_data = X_data[expected_features]
+                predictions = self.model.predict(X_data)
+            # MLflow pyfunc
+            elif hasattr(self.model, 'predict'):
+                predictions = self.model.predict(X_data)
+            else:
+                logger.error("Modèle sans méthode predict")
+                return None, None
             
             # Essayer de récupérer les scores de confiance
             confidence_scores = None
