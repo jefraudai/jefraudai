@@ -81,8 +81,8 @@ def get_service_secrets(service):
     # Mapping of service -> environment variables
     service_secrets_map = {
         "MLflow": ["MLFLOW_POSTGRES_URI", "MLFLOW_S3_ENDPOINT_URL"],
-        "Producer": ["KAFKA_PASSWORD", "KAFKA_BOOTSTRAP_SERVERS"],
-        "consumer": ["KAFKA_PASSWORD", "KAFKA_BOOTSTRAP_SERVERS", "POSTGRES_URI", "MLFLOW_POSTGRES_URI", "MLFLOW_S3_ENDPOINT_URL"],
+        "Producer": ["KAFKA_PASSWORD", "KAFKA_BOOTSTRAP_SERVERS", "KAFKA_USERNAME"],
+        "consumer": ["KAFKA_PASSWORD", "KAFKA_BOOTSTRAP_SERVERS", "KAFKA_USERNAME", "POSTGRES_URI", "MLFLOW_POSTGRES_URI", "MLFLOW_S3_ENDPOINT_URL"],
     }
 
     secrets = {}
