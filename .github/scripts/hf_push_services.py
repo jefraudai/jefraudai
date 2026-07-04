@@ -14,20 +14,30 @@ from pathlib import Path
 from dotenv import load_dotenv
 from huggingface_hub import HfApi
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 def get_services():
-    """Read service list from .env ServicesNames variable"""
-    env_path = Path(__file__).parent.parent.parent / ".env"
-    load_dotenv(env_path)
+    """Read service list from config.yaml"""
+    from hf_config import get_services_names
+    return get_services_names()
+
+def get_satellites():
+    """Read satellite list from config.yaml"""
+    from hf_config import get_satellites_names
+    return get_satellites_names()
+
+def get_hf_token_for_service(service_name):
+    """Get HF_TOKEN for a specific service or satellite"""
+    # Extract just the service name (without username prefix if present)
+    # e.g., "jetestai/airflow" -> "airflow"
+    if "/" in service_name:
+        service_name = service_name.split("/")[-1]
     
-    services_str = os.getenv("ServicesNames", "")
-    if not services_str:
-        print("[ERR] ServicesNames not defined in .env")
-        return []
-    
-    return [s.strip() for s in services_str.split(",") if s.strip()]
+    # Try satellite-specific token first (e.g., AIRFLOW_HF_TOKEN)
+    satellite_token = os.getenv(f"{service_name.upper()}_HF_TOKEN")
+    if satellite_token:
+        return satellite_token
+    # Fall back to default HF_TOKEN
+    return os.getenv("HF_TOKEN")
 
 def has_changes(path):
     """Check if there are changes between HEAD~1 and HEAD in a path"""
@@ -57,41 +67,31 @@ def check_critical_files_changed():
     
     return False
 
-def push_service_to_hf(api, service, username):
-    """Push service directory to HuggingFace Space (includes .env)"""
-    service_path = Path(__file__).parent.parent.parent / "Services" / service
+def push_service_to_hf(api, service, space_id):
+    """Push service directory to HuggingFace Space"""
+    # Extract just the service name (without username prefix) for local directory
+    # e.g., "jinsudai/MLflow" -> "MLflow"
+    service_name = service.split("/")[-1] if "/" in service else service
+    service_path = Path(__file__).parent.parent.parent / "Services" / service_name
     repo_root = Path(__file__).parent.parent.parent
-    env_file = repo_root / ".env"
-    toml_file = repo_root / "pyproject.toml"
-    
+
     if not service_path.exists():
         print(f"[ERR] Service directory not found: {service_path}")
         return False
-    
+
     try:
-        # Copier .env dans le dossier service avant upload
-        if env_file.exists():
-            service_env_path = service_path / ".env"
-            shutil.copy2(env_file, service_env_path)
-            print(f"[*] Copied .env to {service}")
+        # Copier src pour FastApi et JinsudAPI
+        if service_name in ["JinsudAPI"]:
+            src_dir = repo_root / "src"
+            service_src_path = service_path / "src"
+            if src_dir.exists():
+                if service_src_path.exists():
+                    shutil.rmtree(service_src_path)
+                shutil.copytree(src_dir, service_src_path)
+                print(f"[*] Copied src to {service_name}")
 
-        # Copier pyproject.toml dans le dossier service avant upload
-        if toml_file.exists():
-            service_toml_path = service_path / "pyproject.toml"
-            shutil.copy2(toml_file, service_toml_path)
-            print(f"[*] Copied pyproject.toml to {service}")
+        # space_id is already the full name from config (e.g., "jinsudai/MLflow")
 
-        # Copier le répertoire src dans le dossier service avant upload
-        src_dir = repo_root / "src"
-        service_src_path = service_path / "src"
-        if src_dir.exists():
-            if service_src_path.exists():
-                shutil.rmtree(service_src_path)
-            shutil.copytree(src_dir, service_src_path)
-            print(f"[*] Copied src to {service}")
-        
-        space_id = f"{username}/{service}"
-        
         # Upload the entire service directory to the space
         api.upload_folder(
             folder_path=str(service_path),
@@ -99,15 +99,13 @@ def push_service_to_hf(api, service, username):
             repo_type="space",
             commit_message=f"Update {service} from repository"
         )
-        
-        # Nettoyer: supprimer le .env et le src copiés localement (ne pas les commiter)
-        service_env_path = service_path / ".env"
-        if service_env_path.exists():
-            service_env_path.unlink()
 
-        if service_src_path.exists():
-            shutil.rmtree(service_src_path)
-        
+        # Nettoyer: supprimer src copié localement (ne pas les commiter)
+        if service_name in ["JinsudAPI"]:
+            service_src_path = service_path / "src"
+            if service_src_path.exists():
+                shutil.rmtree(service_src_path)
+
         print(f"[OK] '{service}' pushed to HuggingFace Space")
         return True
     except Exception as e:
@@ -126,15 +124,14 @@ def main():
     
     api = HfApi(token=token)
     
-    try:
-        username = api.whoami()["name"]
-    except Exception as e:
-        print(f"[ERR] Failed to authenticate with HuggingFace: {str(e)}")
-        sys.exit(1)
+    # No need to call whoami() since space names now include username from config
     
     services = get_services()
-    if not services:
-        print("[*] No services configured in .env")
+    satellites = get_satellites()
+    all_spaces = services + satellites
+    
+    if not all_spaces:
+        print("[*] No services or satellites configured in config.yaml")
         return
     
     # Check for changes in Services directory or .env
@@ -144,39 +141,50 @@ def main():
     print("[*] Checking for changes...")
     print("=" * 60)
     
-    services_to_push = []
+    spaces_to_push = []
     
     if force_push:
-        # Mode force push: mettre à jour tous les services
-        print("[*] Force push mode - will update all services")
-        services_to_push = services
+        # Mode force push: mettre à jour tous les services et satellites
+        print("[*] Force push mode - will update all services and satellites")
+        spaces_to_push = all_spaces
     elif check_critical_files_changed():
-        # Si fichiers critiques ont changé, pousser tous les services
-        print("[*] Critical files have changed - will push all services")
-        services_to_push = services
+        # Si fichiers critiques ont changé, pousser tous les services et satellites
+        print("[*] Critical files have changed - will push all services and satellites")
+        spaces_to_push = all_spaces
     else:
-        # Vérifier chaque service pour des changements
-        for service in services:
-            service_path = services_dir / service
-            if service_path.exists() and has_changes(str(service_path)):
-                print(f"[*] Changes detected in '{service}'")
-                services_to_push.append(service)
+        # Vérifier chaque service et satellite pour des changements
+        for space in all_spaces:
+            # Extract just the service name (without username prefix) for local directory
+            # e.g., "jinsudai/MLflow" -> "MLflow"
+            service_name = space.split("/")[-1] if "/" in space else space
+            space_path = services_dir / service_name
+            if space_path.exists() and has_changes(str(space_path)):
+                print(f"[*] Changes detected in '{space}'")
+                spaces_to_push.append(space)
     
-    if not services_to_push:
+    if not spaces_to_push:
         print("[*] No changes detected, skipping push")
         return
     
     print("=" * 60)
-    print(f"[*] Pushing {len(services_to_push)} service(s)...")
+    print(f"[*] Pushing {len(spaces_to_push)} space(s)...")
     print("=" * 60)
     
     success_count = 0
-    for service in services_to_push:
-        if push_service_to_hf(api, service, username):
+    for space in spaces_to_push:
+        # Get appropriate token for this space
+        space_token = get_hf_token_for_service(space)
+        if not space_token:
+            print(f"[WARN] No HF_TOKEN found for '{space}' (tried {space.upper()}_HF_TOKEN and HF_TOKEN)")
+            continue
+        
+        space_api = HfApi(token=space_token)
+        
+        if push_service_to_hf(space_api, space, space):
             success_count += 1
     
     print("=" * 60)
-    print(f"[*] Pushed {success_count}/{len(services_to_push)} services")
+    print(f"[*] Pushed {success_count}/{len(spaces_to_push)} spaces")
 
 if __name__ == "__main__":
     main()

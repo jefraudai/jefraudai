@@ -70,7 +70,7 @@ training:
 
 # MLflow
 mlflow:
-  tracking_uri: "https://jefraudai-mlflow.hf.space/"
+  tracking_uri: "https://mlflai-mlflow.hf.space/"
   experiment_name: "Fraud_Detection"
   model_name: "fraud_detection_model"
   prod_alias: "prod"
@@ -354,7 +354,7 @@ DB_USER=your_db_user
 DB_PASSWORD=your_db_password
 
 # MLflow
-MLFLOW_TRACKING_URI=https://jefraudai-mlflow.hf.space/
+MLFLOW_TRACKING_URI=https://mlflai-mlflow.hf.space/
 MLFLOW_EXPERIMENT_NAME=Fraud_Detection
 MLFLOW_MODEL_NAME=fraud_detection_model
 MLFLOW_PROD_ALIAS=prod
@@ -468,6 +468,6 @@ model:
   model_type: "auto_gluon"  # Meilleure performance
 
 mlflow:
-  tracking_uri: "https://jefraudai-mlflow.hf.space/"
+  tracking_uri: "https://mlflai-mlflow.hf.space/"
   experiment_name: "Fraud_Detection_Prod"
 ```

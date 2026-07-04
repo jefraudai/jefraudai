@@ -104,7 +104,7 @@ Amélioration de la documentation
 
 ## Prod
 - API : https://sdacelo-real-time-fraud-detection.hf.space/
-- MLflow : https://jefraudai-mlflow.hf.space/#/models
+- MLflow : https://mlflai-mlflow.hf.space/#/models
 - Producer : https://huggingface.co/spaces/jefraudai/Producer
 - Kafka : https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/
 - Consumer : https://huggingface.co/spaces/jefraudai/consumer

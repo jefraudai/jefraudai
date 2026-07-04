@@ -20,12 +20,23 @@ mdc: true
 
 ### Concevoir et mettre en oeuvre des pipelines de données (pour l'IA)
 
-<div class="abs-br m-6 flex gap-2">
-  <a href="https://github.com/Jenedai/jefraudai" target="_blank" alt="GitHub"
-    class="text-xl icon-btn opacity-50 !border-none !hover:text-white">
-    <carbon-logo-github />
-  </a>
-</div>
+---
+transition: fade-out
+---
+
+# Objectifs Pédagogiques
+
+Concevoir et mettre en œuvre des pipelines de données pour l'IA
+
+<v-clicks>
+
+- **Gestion de données temps réel** : Adapter le système pour gérer efficacement la vélocité, le volume et la typologie des données
+- **Pipeline ETL/ELT** : Établir un pipeline de données pour le transfert et la transformation entre différentes bases
+- **Automatisation** : Optimiser les performances de l'infrastructure de données par l'automatisation des flux
+- **Surveillance** : Assurer la qualité et le respect de la politique de gouvernance des données
+- **Contrôle qualité** : Développer des procédures de contrôle qualité et de correction des erreurs
+
+</v-clicks>
 
 ---
 transition: fade-out
@@ -50,45 +61,23 @@ transition: slide-left
 # Architecture Générale
 
 ```mermaid
-graph LR
-    subgraph "Source"
-        direction LR
-        API[Payment API]
-    end
-
-    subgraph "Streaming"
-        direction LR
-        KP[Kafka Producer]
-        KT[Kafka Topic<br/>real-time-payments]
-        KC[Fraud Consumer<br/>ML Prediction]
-    end
-
-    subgraph "ML & Storage"
-        direction LR
-        ML[MLflow<br/>Model Registry]
-        PG[PostgreSQL<br/>Neon DB]
-    end
-
-    subgraph "Monitoring & Alerts"
-        direction LR
-        GF[Grafana<br/>Dashboard]
-        EM[Email<br/>Resend]
-    end
-
-    API --> KP --> KT --> KC
-    KC --> PG
-    KC --> ML
-    PG --> GF
-    KC --> EM
-
-    style API fill:#e1f5ff
-    style KP fill:#fff4e1
-    style KT fill:#ffe1e1
-    style KC fill:#e1ffe1
-    style ML fill:#f3e1ff
-    style PG fill:#e1f5ff
-    style GF fill:#fff4e1
-    style EM fill:#ffe1e1
+flowchart LR
+    A[Payment API] --> B[Kafka Producer]
+    B --> C[Kafka Topic]
+    C --> D[Fraud Consumer]
+    D --> E[ML Prediction]
+    E --> F[PostgreSQL]
+    F --> G[Grafana Monitoring]
+    F --> H[Email Notification]
+    
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style C fill:#ffe1e1
+    style D fill:#e1ffe1
+    style E fill:#f0e1ff
+    style F fill:#e1f5ff
+    style G fill:#ffe1f0
+    style H fill:#f0ffe1
 ```
 
 ---

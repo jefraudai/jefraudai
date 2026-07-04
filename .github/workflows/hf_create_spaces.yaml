@@ -1,10 +1,6 @@
-name: Create HF Spaces
+name: 0 - Infra - Create HF Spaces
 
 on:
-  push:
-    paths:
-      - '.github/scripts/hf_create_spaces.py'
-      - '.env'
   workflow_dispatch:
 
 jobs:
@@ -30,5 +26,8 @@ jobs:
       - name: Create spaces
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          AIRFLOW_HF_TOKEN: ${{ secrets.AIRFLOW_HF_TOKEN }}
+          JINSUDAPI_HF_TOKEN: ${{ secrets.JINSUDAPI_HF_TOKEN }}
+          EVIDENTLYUI_HF_TOKEN: ${{ secrets.EVIDENTLYUI_HF_TOKEN }}
         run: |
           python .github/scripts/hf_create_spaces.py

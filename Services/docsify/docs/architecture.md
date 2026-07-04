@@ -253,7 +253,7 @@ graph TD
 | Service        | URL                                                                                                                                                         | Description        |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
 | API Production | https://sdacelo-real-time-fraud-detection.hf.space/                                                                                                         | Endpoint principal |
-| MLflow UI      | https://jefraudai-mlflow.hf.space/#/models                                                                                                                  | Interface MLflow   |
+| MLflow UI      | https://mlflai-mlflow.hf.space/#/models                                                                                                                  | Interface MLflow   |
 | Producer       | https://huggingface.co/spaces/jefraudai/Producer                                                                                                            | Service Producer   |
 | Consumer       | https://huggingface.co/spaces/jefraudai/consumer                                                                                                            | Service Consumer   |
 | Kafka          | https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/                                                                         | Cluster Redpanda   |

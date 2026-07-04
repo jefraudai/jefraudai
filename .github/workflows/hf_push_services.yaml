@@ -1,12 +1,6 @@
-name: Push Service Files to HF
+name: 0 - Infra - Push Service Files to HF
 
 on:
-  push:
-    paths:
-      - '.github/scripts/hf_push_services.py'
-      - '.github/scripts/hf_create_spaces.py'
-      - '.env'
-      - 'Services/**'      
   workflow_dispatch:
 
 jobs:
@@ -32,6 +26,9 @@ jobs:
       - name: Push services to HF
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          AIRFLOW_HF_TOKEN: ${{ secrets.AIRFLOW_HF_TOKEN }}
+          JINSUDAPI_HF_TOKEN: ${{ secrets.JINSUDAPI_HF_TOKEN }}
+          EVIDENTLYUI_HF_TOKEN: ${{ secrets.EVIDENTLYUI_HF_TOKEN }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             python .github/scripts/hf_push_services.py --force-push

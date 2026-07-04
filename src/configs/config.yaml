@@ -25,7 +25,7 @@ training:
 
 # MLflow
 mlflow:
-  tracking_uri: "https://jefraudai-mlflow.hf.space/"
+  tracking_uri: "https://mlflai-mlflow.hf.space/"
   experiment_name: "Fraud_Detection"
   model_name: "fraud_detection_model"
   prod_alias: "prod"

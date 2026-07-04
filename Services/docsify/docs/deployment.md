@@ -240,7 +240,7 @@ graph TD
     style F1 fill:#e1ffe1
 ```
 
-**URL:** https://jefraudai-mlflow.hf.space/#/models
+**URL:** https://mlflai-mlflow.hf.space/#/models
 
 ## ☁️ Services Cloud Externes
 
@@ -592,7 +592,7 @@ graph TD
 | Service   | URL                                                                                                                                                         | Description        |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
 | API       | https://sdacelo-real-time-fraud-detection.hf.space/                                                                                                         | Endpoint principal |
-| MLflow    | https://jefraudai-mlflow.hf.space/#/models                                                                                                                  | Interface MLflow   |
+| MLflow    | https://mlflai-mlflow.hf.space/#/models                                                                                                                  | Interface MLflow   |
 | Producer  | https://huggingface.co/spaces/jefraudai/Producer                                                                                                            | Service Producer   |
 | Consumer  | https://huggingface.co/spaces/jefraudai/consumer                                                                                                            | Service Consumer   |
 | Kafka     | https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/                                                                         | Cluster Redpanda   |

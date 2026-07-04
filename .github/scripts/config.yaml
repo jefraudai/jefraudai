@@ -1,0 +1,11 @@
+# Configuration des services
+services:
+  # Liste des services internes (HuggingFace Spaces)
+  names:    
+    - "jfraudai/docsify"
+    - "jfraudai/slidev"
+    - "jfraudai/consumer"
+    - "jfraudai/producer"
+  # Liste des satellites (HuggingFace Spaces)
+  satellites:
+    - "mlflai/MLflow"

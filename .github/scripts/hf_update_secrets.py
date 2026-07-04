@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+
 """
 Update secrets in HuggingFace Spaces
+
 Triggers when .github/scripts/secrets/ changes
+
 Distributes AWS credentials + service-specific secrets to each space
 """
 
@@ -11,20 +14,33 @@ from pathlib import Path
 from dotenv import load_dotenv
 from huggingface_hub import HfApi
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 def get_services():
-    """Read service list from .env ServicesNames variable"""
-    env_path = Path(__file__).parent.parent.parent / ".env"
-    load_dotenv(env_path)
+    """Read service list from config.yaml"""
+    from hf_config import get_services_names
+    return get_services_names()
+
+
+def get_satellites():
+    """Read satellite list from config.yaml"""
+    from hf_config import get_satellites_names
+    return get_satellites_names()
+
+
+def get_hf_token_for_service(service_name):
+    """Get HF_TOKEN for a specific service or satellite"""
+    # Extract just the service name (without username prefix if present)
+    # e.g., "jetestai/airflow" -> "airflow"
+    if "/" in service_name:
+        service_name = service_name.split("/")[-1]
     
-    services_str = os.getenv("ServicesNames", "")
-    if not services_str:
-        print("[ERR] ServicesNames not defined in .env")
-        return []
-    
-    return [s.strip() for s in services_str.split(",") if s.strip()]
+    # Try satellite-specific token first (e.g., AIRFLOW_HF_TOKEN)
+    satellite_token = os.getenv(f"{service_name.upper()}_HF_TOKEN")
+    if satellite_token:
+        return satellite_token
+    # Fall back to default HF_TOKEN
+    return os.getenv("HF_TOKEN")
+
 
 def _get_env_secret(env_var, context=""):
     """Helper to get environment variable and log warning if not found"""
@@ -44,7 +60,7 @@ def get_shared_secrets():
         "AWS_REGION",
         "AWS_ENDPOINT_URL"
     ]
-    
+
     secrets = {}
     for env_var in shared_env_vars:
         value = _get_env_secret(env_var)
@@ -52,35 +68,44 @@ def get_shared_secrets():
             secrets[env_var] = value
         else:
             print(f"[WARN] '{env_var}' not defined")
-    
+
     return secrets
+
 
 def get_service_secrets(service):
     """Get service-specific secrets from environment (e.g., AIRFLOW_PASSWORD)"""
+    # Extract just the service name (without username prefix if present)
+    # e.g., "jetestai/airflow" -> "airflow"
+    if "/" in service:
+        service = service.split("/")[-1]
+    
     # Mapping of service -> environment variables
     service_secrets_map = {
-        "Airflow": ["AIRFLOW_ADMIN_USER", "AIRFLOW_ADMIN_PASSWORD", "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN", "AIRFLOW__WEBSERVER__SECRET_KEY"],
+        "airflow": ["AIRFLOW_ADMIN_USER", "AIRFLOW_ADMIN_PASSWORD", "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN", "AIRFLOW__WEBSERVER__SECRET_KEY", "GH_TOKEN", "GH_REPO", "GH_BRANCH"],
         "MLflow": ["MLFLOW_POSTGRES_URI", "MLFLOW_S3_ENDPOINT_URL"],
+        "JinsudAPI": ["mlflow_tracking_uri", "MLFLOW_POSTGRES_URI", "MLFLOW_S3_ENDPOINT_URL"],
         "JupyterLab": ["JUPYTER_TOKEN", "NEON_POSTGRES_URI"],
         "Streamlit": ["NEON_POSTGRES_URI"],
         "n8n": ["N8N_ENCRYPTION_KEY", "DB_TYPE", "DB_POSTGRESDB_USER", "DB_POSTGRESDB_PASSWORD", "DB_POSTGRESDB_HOST", "DB_POSTGRESDB_PORT", "DB_POSTGRESDB_DATABASE"],
         "Producer": ["KAFKA_PASSWORD"],
-        "consumer": ["KAFKA_PASSWORD", "POSTGRES_URI", "MLFLOW_POSTGRES_URI", "MLFLOW_S3_ENDPOINT_URL"]
+        "consumer": ["KAFKA_PASSWORD", "POSTGRES_URI", "MLFLOW_POSTGRES_URI", "MLFLOW_S3_ENDPOINT_URL"],
+        "EvidentlyUI": ["AWS_BUCKET"]
     }
-    
+
     secrets = {}
     env_vars = service_secrets_map.get(service, [])
-    
+
     if not env_vars:
         print(f"[WARN] No specific secrets mapped for service '{service}'")
         return secrets
-    
+
     for env_var in env_vars:
         value = _get_env_secret(env_var, service)
         if value:
             secrets[env_var] = value
-    
+
     return secrets
+
 
 def add_space_secret(api, space_id, secret_name, secret_value):
     """Add or update a secret in a HuggingFace Space"""
@@ -96,30 +121,39 @@ def add_space_secret(api, space_id, secret_name, secret_value):
         print(f"[ERR] Failed to update secret '{secret_name}': {str(e)}")
         return False
 
+
 def main():
     """Main function: update secrets in all spaces"""
     token = os.getenv("HF_TOKEN")
     if not token:
         print("[ERR] HF_TOKEN environment variable not set")
         sys.exit(1)
-    
-    api = HfApi(token=token)
-    username = api.whoami()["name"]
-    
+
     services = get_services()
-    if not services:
-        print("[*] No services configured in .env")
+    satellites = get_satellites()
+    all_spaces = services + satellites
+
+    if not all_spaces:
+        print("[*] No services or satellites configured in config.yaml")
         return
-    
+
     shared_secrets = get_shared_secrets()
-    
+
     print("[*] Updating secrets in spaces...")
     print("=" * 60)
-    
-    for service in services:
-        space_id = f"{username}/{service}"
+
+    for space in all_spaces:
+        # Get appropriate token for this space
+        space_token = get_hf_token_for_service(space)
+        if not space_token:
+            print(f"[WARN] No HF_TOKEN found for '{space}' (tried {space.upper()}_HF_TOKEN and HF_TOKEN)")
+            continue
+
+        space_api = HfApi(token=space_token)
+
+        space_id = space  # Space name already includes username from config
         print(f"\n[*] Processing space: {space_id}")
-        
+
         # Add shared AWS secrets
         if not shared_secrets:
             print(f"[WARN] No shared AWS secrets available")
@@ -128,16 +162,17 @@ def main():
                 if not secret_value:
                     print(f"[WARN] {secret_name} is empty, skipping")
                 else:
-                    add_space_secret(api, space_id, secret_name, secret_value)
-        
+                    add_space_secret(space_api, space_id, secret_name, secret_value)
+
         # Add service-specific secrets
-        service_secrets = get_service_secrets(service)
+        service_secrets = get_service_secrets(space)
         if service_secrets:
             for secret_name, secret_value in service_secrets.items():
-                add_space_secret(api, space_id, secret_name, secret_value)
-    
+                add_space_secret(space_api, space_id, secret_name, secret_value)
+
     print("\n" + "=" * 60)
     print("[OK] Secrets update completed")
+
 
 if __name__ == "__main__":
     main()
