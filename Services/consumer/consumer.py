@@ -271,6 +271,10 @@ def main():
         return
     logger.info(f"Modèle chargé avec succès : {inference_model.get_model_info()}")
 
+    # Log DB URI (masked password) for verification
+    if DB_URI:
+        masked_uri = DB_URI.split('@')[-1] if '@' in DB_URI else DB_URI
+        logger.info(f"Connexion PostgreSQL à: {masked_uri}")
     engine = create_engine(DB_URI)
     create_predictions_table(engine)
     logger.info("Connexion PostgreSQL établie")
@@ -300,7 +304,6 @@ def main():
         "fetch.wait.max.ms": 5000,
         # SSL-specific configurations
         "ssl.key.password": "",
-        "debug": "broker,topic,msg",  # Enable debug logging
     }
     
     # Helper to write certificate content to temp file
