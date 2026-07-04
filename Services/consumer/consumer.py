@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import socket
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -96,6 +97,42 @@ def get_valid_offset(consumer, topic, partition, requested_offset):
         logger.warning(f"Erreur watermark pour {topic}:{partition} : {e}")
         return OFFSET_BEGINNING if KAFKA_AUTO_OFFSET_RESET == "earliest" else OFFSET_END
 
+
+def test_network_connectivity(host, port, timeout=5):
+    """Test basic TCP connectivity to a broker."""
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(timeout)
+        result = sock.connect_ex((host, port))
+        sock.close()
+        if result == 0:
+            logger.info(f"Network connectivity OK: {host}:{port}")
+            return True
+        else:
+            logger.error(f"Network connectivity FAILED: {host}:{port} (error code: {result})")
+            return False
+    except Exception as e:
+        logger.error(f"Network connectivity error for {host}:{port}: {e}")
+        return False
+
+def diagnose_kafka_connection():
+    """Diagnose Kafka connection issues."""
+    logger.info("=== Kafka Connection Diagnostics ===")
+    logger.info(f"Bootstrap servers: {KAFKA_BOOTSTRAP_SERVERS}")
+    logger.info(f"Username: {KAFKA_USERNAME}")
+    logger.info(f"Topic: {KAFKA_TOPIC}")
+
+    # Test each broker
+    brokers = KAFKA_BOOTSTRAP_SERVERS.split(",")
+    for broker in brokers:
+        # Parse host:port from sasl_ssl://host:port
+        if "://" in broker:
+            broker = broker.split("://")[1]
+        if ":" in broker:
+            host, port = broker.split(":")
+            port = int(port)
+            test_network_connectivity(host, port)
+    logger.info("=== End Diagnostics ===")
 
 def on_assign(consumer, partitions):
     logger.info(f"Partitions assignées : {[f'{p.topic}:{p.partition}' for p in partitions]}")
@@ -232,6 +269,9 @@ def main():
     create_predictions_table(engine)
     logger.info("Connexion PostgreSQL établie")
 
+    # Run diagnostics before creating consumer
+    diagnose_kafka_connection()
+
     # SSL configuration for Aiven
     consumer_config = {
         "bootstrap.servers":  KAFKA_BOOTSTRAP_SERVERS,
@@ -246,6 +286,13 @@ def main():
         "session.timeout.ms": 30000,  # 30 secondes pour détecter les pannes
         "ssl.endpoint.identification.algorithm": "none",  # Disable hostname verification
         "enable.ssl.certificate.verification": False,  # Disable CA verification for Aiven
+        # Timeout configurations
+        "socket.timeout.ms": 10000,
+        "request.timeout.ms": 30000,
+        "reconnect.backoff.ms": 1000,
+        "reconnect.backoff.max.ms": 10000,
+        # Connection retries
+        "fetch.wait.max.ms": 5000,
     }
     
     # Helper to write certificate content to temp file
