@@ -81,7 +81,7 @@ def push_service_to_hf(api, service, space_id):
 
     try:
         # Copier src pour FastApi et JinsudAPI
-        if service_name in ["JinsudAPI"]:
+        if service_name in ["consume,Producer"]:
             src_dir = repo_root / "src"
             service_src_path = service_path / "src"
             if src_dir.exists():
@@ -90,8 +90,6 @@ def push_service_to_hf(api, service, space_id):
                 shutil.copytree(src_dir, service_src_path)
                 print(f"[*] Copied src to {service_name}")
 
-        # space_id is already the full name from config (e.g., "jinsudai/MLflow")
-
         # Upload the entire service directory to the space
         api.upload_folder(
             folder_path=str(service_path),
@@ -99,12 +97,6 @@ def push_service_to_hf(api, service, space_id):
             repo_type="space",
             commit_message=f"Update {service} from repository"
         )
-
-        # Nettoyer: supprimer src copié localement (ne pas les commiter)
-        if service_name in ["JinsudAPI"]:
-            service_src_path = service_path / "src"
-            if service_src_path.exists():
-                shutil.rmtree(service_src_path)
 
         print(f"[OK] '{service}' pushed to HuggingFace Space")
         return True
