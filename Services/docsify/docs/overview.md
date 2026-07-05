@@ -11,22 +11,22 @@ Système de détection de fraude en temps réel utilisant l'IA pour analyser les
 
 ```mermaid
 graph TD
-    subgraph "Source"
+    subgraph Source["Source"]
         API[Payment API]
     end
     
-    subgraph "Streaming"
+    subgraph Streaming["Streaming"]
         KP[Kafka Producer]
         KT[Kafka Topic<br/>real-time-payments]
         KC[Fraud Consumer<br/>ML Prediction]
     end
     
-    subgraph "ML & Storage"
+    subgraph ML_Storage["ML & Storage"]
         ML[MLflow<br/>Model Registry]
         PG[PostgreSQL<br/>Neon DB]
     end
     
-    subgraph "Monitoring & Alerts"
+    subgraph Monitoring_Alerts["Monitoring & Alerts"]
         GF[Grafana<br/>Dashboard]
         EM[Email<br/>Resend]
     end
@@ -38,50 +38,36 @@ graph TD
     KC --> ML
     PG --> GF
     KC --> EM
-    
-    style API fill:#e1f5ff
-    style KP fill:#fff4e1
-    style KT fill:#ffe1e1
-    style KC fill:#e1ffe1
-    style ML fill:#f3e1ff
-    style PG fill:#e1f5ff
-    style GF fill:#fff4e1
-    style EM fill:#ffe1e1
-    
-    style Source fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style Streaming fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style "ML & Storage" fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style "Monitoring & Alerts" fill:#1e293b,stroke:#4a90d9,color:#ffffff
 ```
 
 ## 🧠 Pipeline ML
 
 ```mermaid
 graph TD
-    subgraph "Données"
+    subgraph Data["Données"]
         D1[CSV Raw]
         D2[Data Loader]
         D3[Data Validator]
     end
     
-    subgraph "Prétraitement"
+    subgraph Preprocessing["Prétraitement"]
         P1[Data Transformer<br/>Nettoyage]
         P2[Data Preparation<br/>Imputation/Scaling/Encoding]
         P3[Train/Test Split]
     end
     
-    subgraph "Entraînement"
+    subgraph Training["Entraînement"]
         M1[AutoGluon<br/>TabularPredictor]
         M2[Hyperparameter Tuning]
         M3[Model Training]
     end
     
-    subgraph "Évaluation & Monitoring"
+    subgraph Eval_Monitoring["Évaluation & Monitoring"]
         E1[Model Evaluation]
         E2[Performance Metrics]
     end
     
-    subgraph "MLOps"
+    subgraph MLOps["MLOps"]
         O1[MLflow Logging]
         O2[Model Registry]
         O3[Staging → Production]
@@ -100,18 +86,6 @@ graph TD
     E1 --> O1
     O1 --> O2
     O2 --> O3
-    
-    style D1 fill:#e1f5ff
-    style P1 fill:#fff4e1
-    style M1 fill:#e1ffe1
-    style E1 fill:#f3e1ff
-    style O1 fill:#ffe1e1
-    
-    style Données fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style Prétraitement fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style Entraînement fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style "Évaluation & Monitoring" fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style MLOps fill:#1e293b,stroke:#4a90d9,color:#ffffff
 ```
 
 ## 📊 Schéma de Données
@@ -121,7 +95,7 @@ graph TD
 Pour faciliter l'entrainement avec des ressources limités, certaines données ont volontairement été omises. La prédiction peut être amélioré en ajoutant ses données aux features.
 ```mermaid
 graph TD
-    subgraph "Features Temporelles"
+    subgraph Temporal_Features["Features Temporelles"]
         F1[trans_date_trans_time]
         F2[month]
         F3[hour]
@@ -129,18 +103,18 @@ graph TD
         F5[is_weekend]
     end
     
-    subgraph "Features Catégorielles"
+    subgraph Categorical_Features["Features Catégorielles"]
         C1[category]
         C2[gender]
         C3[job]
     end
     
-    subgraph "Features Numériques"
+    subgraph Numerical_Features["Features Numériques"]
         N1[amount]
         N2[city_pop]
     end
     
-    subgraph "Target"
+    subgraph Target["Target"]
         T1[is_fraud]
     end
     
@@ -157,16 +131,6 @@ graph TD
     C3 --> T1
     N1 --> T1
     N2 --> T1
-    
-    style F1 fill:#e1f5ff
-    style C1 fill:#fff4e1
-    style N1 fill:#e1ffe1
-    style T1 fill:#ffe1e1
-    
-    style "Features Temporelles" fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style "Features Catégorielles" fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style "Features Numériques" fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style Target fill:#1e293b,stroke:#4a90d9,color:#ffffff
 ```
 
 
@@ -176,20 +140,20 @@ graph TD
 
 ```mermaid
 graph TD
-    subgraph "HuggingFace Spaces"
+    subgraph HF_Spaces["HuggingFace Spaces"]
         HF1[Producer Service]
         HF2[Consumer Service]
         HF3[MLflow UI]
         HF4[API Endpoint]
     end
     
-    subgraph "Cloud Services"
+    subgraph Cloud_Services["Cloud Services"]
         CS1[Redpanda Kafka]
         CS2[Neon PostgreSQL]
         CS3[Supabase S3<br/>MLflow Artifacts]
     end
     
-    subgraph "Monitoring"
+    subgraph Monitoring["Monitoring"]
         MN1[Grafana Cloud]
         MN2[Resend Email]
     end
@@ -201,20 +165,4 @@ graph TD
     HF2 --> MN1
     HF2 --> MN2
     HF4 --> HF1
-    
-    style HF1 fill:#e1f5ff
-    style CS1 fill:#fff4e1
-    style MN1 fill:#e1ffe1
-    
-    style "HuggingFace Spaces" fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style "Cloud Services" fill:#1e293b,stroke:#4a90d9,color:#ffffff
-    style Monitoring fill:#1e293b,stroke:#4a90d9,color:#ffffff
 ```
-
-## 📚 Navigation
-
-- [Architecture Détaillée](architecture.md)
-- [Schéma de Données](data.md)
-- [Pipeline ML](pipeline.md)
-- [Configuration](configuration.md)
-- [Déploiement](deployment.md)

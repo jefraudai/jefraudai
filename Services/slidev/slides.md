@@ -5,7 +5,7 @@ class: text-center
 highlighter: shiki
 lineNumbers: false
 info: |
-  ## JefraudAI - Détection de Fraudes en Temps Réel
+  ## Détection de Fraudes en Temps Réel
   Présentation du projet MLOps
 drawings:
   persist: false
@@ -14,18 +14,9 @@ title: JefraudAI
 mdc: true
 ---
 
-# JefraudAI
+# Système de Détection de Fraudes en Temps Réel
 
-## Système de Détection de Fraudes en Temps Réel
-
-### Concevoir et mettre en oeuvre des pipelines de données (pour l'IA)
-
-<div class="abs-br m-6 flex gap-2">
-  <a href="https://github.com/Jenedai/jefraudai" target="_blank" alt="GitHub"
-    class="text-xl icon-btn opacity-50 !border-none !hover:text-white">
-    <carbon-logo-github />
-  </a>
-</div>
+## Concevoir et mettre en oeuvre des pipelines de données (pour l'IA)
 
 ---
 transition: fade-out
