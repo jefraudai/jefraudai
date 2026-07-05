@@ -1,10 +1,8 @@
 # Configuration
 
-## ⚙️ Vue d'ensemble de la Configuration
+## 📁 Structure
 
 Le projet utilise un fichier YAML centralisé pour la configuration, avec possibilité de surcharge via variables d'environnement.
-
-## 📁 Structure de Configuration
 
 ### Arborescence des Configs
 
@@ -84,59 +82,6 @@ monitoring:
 ```
 
 ## 🔧 Configuration Loader
-
-### Fonctions de Configuration
-
-```mermaid
-graph TD
-    subgraph "Configuration Functions"
-        F1[load_config]
-        F2[get_nested]
-        F3[env_name_for_key]
-        F4[get_config_value]
-        F5[get_mlflow_config]
-    end
-    
-    subgraph "load_config"
-        LC1[Read YAML File]
-        LC2[Parse with yaml.safe_load]
-        LC3[Return Dict or Empty]
-    end
-    
-    subgraph "get_nested"
-        GN1[Split Key by '.']
-        GN2[Traverse Dict]
-        GN3[Return Value or Default]
-    end
-    
-    subgraph "env_name_for_key"
-        EN1[Replace '.' with '_']
-        EN2[Convert to Uppercase]
-        EN3[Return Env Var Name]
-    end
-    
-    subgraph "get_config_value"
-        GC1[Get Env Var Name]
-        GC2[Check os.getenv]
-        GC3[Return Env or Config]
-    end
-    
-    subgraph "get_mlflow_config"
-        GM1[Load Config]
-        GM2[Build MLflow Dict]
-        GM3[Apply Env Overrides]
-    end
-    
-    F1 --> LC1
-    F2 --> GN1
-    F3 --> EN1
-    F4 --> GC1
-    F5 --> GM1
-    
-    style F1 fill:#e1f5ff
-    style LC1 fill:#fff4e1
-    style GN1 fill:#e1ffe1
-```
 
 ### Fonction: load_config
 
@@ -370,7 +315,7 @@ RESEND_API_KEY=your_resend_api_key
 ALERT_EMAIL=alert@example.com
 ```
 
-## 🎯 Utilisation de la Configuration
+## 🎯 Utilisation
 
 ### Exemple d'Utilisation
 
@@ -404,37 +349,6 @@ tracking_uri = get_config_value(config, "mlflow.tracking_uri")
 # Retourne: 'https://custom-mlflow.example.com/'
 ```
 
-## 📊 Validation de Configuration
-
-### Schéma de Validation
-
-```mermaid
-graph TD
-    subgraph "Validation Checks"
-        V1[Check File Exists]
-        V2[Check YAML Valid]
-        V3[Check Required Keys]
-        V4[Check Value Types]
-        V5[Check Value Ranges]
-    end
-    
-    subgraph "Required Keys"
-        RK1[data.target_column]
-        RK2[model.test_size]
-        RK3[model.random_state]
-        RK4[model.model_type]
-        RK5[mlflow.tracking_uri]
-    end
-    
-    V1 --> V2
-    V2 --> V3
-    V3 --> RK1
-    V4 --> RK2
-    V5 --> RK3
-    
-    style V1 fill:#e1f5ff
-    style RK1 fill:#fff4e1
-```
 
 ## 🔧 Configuration par Environnement
 

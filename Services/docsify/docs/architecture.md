@@ -1,10 +1,8 @@
 # Architecture Détaillée
 
-## 🏛️ Vue d'ensemble de l'Architecture
+## 🏛️ Schéma de l'Architecture
 
 Le système de détection de fraude est construit selon une architecture microservices orientée événements, utilisant Kafka pour le streaming temps réel et MLflow pour la gestion des modèles ML.
-
-### Composants Principaux
 
 ```mermaid
 graph TD
@@ -250,11 +248,9 @@ graph TD
 
 ### Services et Endpoints
 
-| Service        | URL                                                                                                                                                         | Description        |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| API Production | https://sdacelo-real-time-fraud-detection.hf.space/                                                                                                         | Endpoint principal |
-| MLflow UI      | https://mlflai-mlflow.hf.space/#/models                                                                                                                  | Interface MLflow   |
-| Producer       | https://huggingface.co/spaces/jefraudai/Producer                                                                                                            | Service Producer   |
-| Consumer       | https://huggingface.co/spaces/jefraudai/consumer                                                                                                            | Service Consumer   |
-| Kafka          | https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/                                                                         | Cluster Redpanda   |
-| Dashboard      | https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598?from=2023-12-04T13:55:58.556Z&to=2028-12-03T13:55:58.556Z&timezone=browser | Grafana Dashboard  |
+- **[API Production](https://sdacelo-real-time-fraud-detection.hf.space/)** - Endpoint principal
+- **[MLflow UI](https://mlflai-mlflow.hf.space/#/models)** - Interface MLflow
+- **[Producer](https://huggingface.co/spaces/jefraudai/Producer)** - Service Producer
+- **[Consumer](https://huggingface.co/spaces/jefraudai/consumer)** - Service Consumer
+- **[Kafka](https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/)** - Cluster Redpanda
+- **[Dashboard Grafana](https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598?from=2023-12-04T13:55:58.556Z&to=2028-12-03T13:55:58.556Z&timezone=browser)** - Grafana Dashboard

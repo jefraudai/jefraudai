@@ -1,10 +1,8 @@
 # Automatic-Fraud-Detection - Documentation
 
-## 📋 Vue d'ensemble
+## 📋 Besoins
 
 Système de détection de fraude en temps réel utilisant l'IA pour analyser les transactions de paiement et alerter automatiquement en cas de suspicion.
-
-### Objectifs
 
 - Être averti en temps réel qu'une fraude est détectée
 - Une fois chaque matin, pouvoir vérifier tous les paiements et fraudes intervenus la veille.

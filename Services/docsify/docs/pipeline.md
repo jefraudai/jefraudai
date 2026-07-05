@@ -99,7 +99,7 @@ graph TD
 - Détection des données vides
 - Comptage des valeurs manquantes
 
-## ✅Validation des Données
+## ✅ Validation des Données
 
 ### Data Validator
 
@@ -212,7 +212,7 @@ drop_columns:
   - merch_long
 ```
 
-## 🔪 Étape 4: Split Train/Test
+## 🔪 Split Train/Test
 
 ### Data Splitter
 
@@ -259,7 +259,7 @@ graph TD
     style OP1 fill:#e1ffe1
 ```
 
-## 🎯 Étape 5: Préparation des Features
+## 🎯 Préparation des Features
 
 ### Data Preparation
 

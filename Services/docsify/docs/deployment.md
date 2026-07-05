@@ -1,10 +1,9 @@
 # Déploiement
 
-## 🚀 Vue d'ensemble du Déploiement
+## 🏗️ Architecture
 
 Le projet est déployé sur HuggingFace Spaces avec des services cloud externes pour Kafka, PostgreSQL et S3.
 
-## 🏗️ Architecture de Déploiement
 ### Infrastructure Cloud
 ```mermaid
 graph TD
@@ -404,7 +403,7 @@ graph TD
 
 **URL:** https://resend.com/
 
-## 🔧 Configuration du Déploiement
+## 🔧 Configuration
 
 ## 🔄 CI/CD Pipeline
 
@@ -587,13 +586,11 @@ graph TD
     style RB1 fill:#ffe1e1
 ```
 
-## 📝 Résumé des Endpoints Production
+## 📝 Endpoints
 
-| Service   | URL                                                                                                                                                         | Description        |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| API       | https://sdacelo-real-time-fraud-detection.hf.space/                                                                                                         | Endpoint principal |
-| MLflow    | https://mlflai-mlflow.hf.space/#/models                                                                                                                  | Interface MLflow   |
-| Producer  | https://huggingface.co/spaces/jefraudai/Producer                                                                                                            | Service Producer   |
-| Consumer  | https://huggingface.co/spaces/jefraudai/consumer                                                                                                            | Service Consumer   |
-| Kafka     | https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/                                                                         | Cluster Redpanda   |
-| Dashboard | https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598?from=2023-12-04T13:55:58.556Z&to=2028-12-03T13:55:58.556Z&timezone=browser | Grafana Dashboard  |
+- **[API](https://sdacelo-real-time-fraud-detection.hf.space/)** - Endpoint principal
+- **[MLflow](https://mlflai-mlflow.hf.space/#/models)** - Interface MLflow
+- **[Producer](https://huggingface.co/spaces/jefraudai/Producer)** - Service Producer
+- **[Consumer](https://huggingface.co/spaces/jefraudai/consumer)** - Service Consumer
+- **[Kafka](https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/)** - Cluster Redpanda
+- **[Dashboard Grafana](https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598?from=2023-12-04T13:55:58.556Z&to=2028-12-03T13:55:58.556Z&timezone=browser)** - Grafana Dashboard

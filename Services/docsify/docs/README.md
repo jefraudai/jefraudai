@@ -11,7 +11,7 @@
 
 ## 🌐 Autre documentation en ligne
 
-**[Slidev Présentations](https://jefraudai-slidev.hf.space/)** - Slides de présentation
+- **[Slidev Présentations](https://jefraudai-slidev.hf.space/)** - Slides de présentation
 
 # Accès aux services en ligne
 
