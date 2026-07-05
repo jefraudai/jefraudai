@@ -1,9 +1,9 @@
 - **Vue d'ensemble**
-  - [Architecture Globale](architectures.md)
+  - [Architecture Globale](architecture.md)
   - [Vue d'ensemble](overview.md)
   
 - **Architecture**
-  - [Architecture Détaillée](architecture.md)
+  - [Architecture Détaillée](architectures.md)
   - [Schéma de Données](data.md)
   
 - **Pipeline ML**

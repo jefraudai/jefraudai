@@ -59,10 +59,18 @@ graph TD
 
 <div style="page-break-before: always;"></div>
 
+## Choix d'architecture
 
-## Streaming avec Kafka (Aiven / Redpanda)
+Cette architecture repose sur 5 principes fondamentaux :
+- Event-driven architecture (Kafka)
+- Découplage via microservices
+- MLOps structuré (MLflow)
+- Stockage transactionnel fiable (PostgreSQL)
+- Observabilité et alerting en temps réel (Grafana + email)
 
-- **Pourquoi** : permettre le traitement **temps réel des transactions financières** dans une architecture event-driven.
+### Streaming avec Kafka (Aiven / Redpanda)
+
+- **Pourquoi** : permettre le traitement temps réel des transactions financières dans une architecture event-driven.
 - **Avantages** :
     - Découplage fort entre producteurs et consommateurs
     - Haute scalabilité horizontale (partitionnement des topics)
@@ -73,9 +81,7 @@ graph TD
     - REST API directe → couplage fort, pas de buffering, non adapté aux pics
     - Airflow / batch processing → latence trop élevée, pas adapté au temps réel
 
----
-
-## Architecture microservices (Producer / Consumer séparés)
+### Architecture microservices (Producer / Consumer séparés)
 
 - **Pourquoi** : séparation des responsabilités pour le traitement des flux de paiement et la détection de fraude.
 - **Avantages** :
@@ -86,9 +92,7 @@ graph TD
 - **Alternative écartée** :
     - Monolithe → difficulté de scaling, couplage fort, point de défaillance unique
 
----
-
-## MLflow pour le cycle de vie des modèles
+### MLflow pour le cycle de vie des modèles
 
 - **Pourquoi** : centraliser la gestion du cycle de vie des modèles de Machine Learning via un système de tracking et de registry.
 - **Rôle de MLflow** :
@@ -108,7 +112,7 @@ graph TD
 
 <div style="page-break-before: always;"></div>
 
-## Base de données PostgreSQL (NeonDB)
+### Base de données PostgreSQL (NeonDB)
 
 - **Pourquoi** : stocker les résultats de scoring et assurer la persistance des décisions de fraude.
 - **Avantages** :
@@ -119,9 +123,7 @@ graph TD
 - **Alternative écartée** :
     - NoSQL → non nécessaire ici, complexité inutile pour des données transactionnelles structurées
 
----
-
-## Déploiement avec Hugging Face Spaces
+### Déploiement avec Hugging Face Spaces
 
 - **Pourquoi** : déploiement rapide et accessible de services Python ML (API de scoring, prototypes).
 - **Avantages** :
@@ -134,9 +136,7 @@ graph TD
 - **Alternative écartée** :
     - AWS / GCP / Azure → plus puissant mais plus complexe et coûteux pour un simple POC
 
----
-
-## Monitoring avec Grafana Cloud
+### Monitoring avec Grafana Cloud
 
 - **Pourquoi** : assurer la visibilité des performances du système et du modèle ML.
 - **Avantages** :
@@ -147,9 +147,7 @@ graph TD
 - **Alternative écartée** :
     - Dashboard custom → coût de développement élevé et maintenance complexe
 
----
-
-## Service d’alerte email (Resend)
+### Service d’alerte email (Resend)
 
 - **Pourquoi** : envoyer des notifications en cas de fraude détectée ou d’anomalies critiques.
 - **Avantages** :
@@ -158,32 +156,3 @@ graph TD
     - Intégration facile avec architectures serverless et microservices
 - **Alternative écartée** :
     - SMTP direct → configuration complexe, faible fiabilité, mauvaise scalabilité
-
-<div style="page-break-before: always;"></div>
-
-# Synthèse architecturale
-
-Cette architecture repose sur 5 principes fondamentaux :
-
-- **Event-driven architecture** (Kafka)
-- **Découplage via microservices**
-- **MLOps structuré (MLflow)**
-- **Stockage transactionnel fiable (PostgreSQL)**
-- **Observabilité et alerting en temps réel (Grafana + email)**
-
----
-
-# Conclusion
-
-Cette architecture est adaptée à un système de :
-
-- détection de fraude temps réel
-- traitement scalable des transactions
-- cycle de vie ML industrialisé
-- monitoring et alerting en production
-
-Elle équilibre :
-
-- simplicité (POC / projet)
-- bonnes pratiques MLOps
-- et extensibilité vers un système enterprise
