@@ -14,9 +14,9 @@ title: JefraudAI
 mdc: true
 ---
 
-# Système de Détection de Fraudes en Temps Réel
+## Système de Détection de Fraudes en Temps Réel
 
-## Concevoir et mettre en oeuvre des pipelines de données (pour l'IA)
+### Concevoir et mettre en oeuvre des pipelines de données (pour l'IA)
 
 ---
 transition: fade-out
@@ -24,15 +24,12 @@ transition: fade-out
 
 # Besoin du Projet
 
-<v-clicks>
-
 ## Alertes en temps réel
 Être averti dès qu'une fraude est détectée
 
 ## Rapport quotidien
 Pouvoir vérifier chaque matin tous les paiements et fraudes intervenus la veille
 
-</v-clicks>
 
 ---
 transition: slide-left
@@ -72,14 +69,14 @@ graph LR
     PG --> GF
     KC --> EM
 
-    style API fill:#e1f5ff
-    style KP fill:#fff4e1
-    style KT fill:#ffe1e1
-    style KC fill:#e1ffe1
-    style ML fill:#f3e1ff
-    style PG fill:#e1f5ff
-    style GF fill:#fff4e1
-    style EM fill:#ffe1e1
+    style API fill:#e1f5ff,fill-opacity:0.5
+    style KP fill:#fff4e1,fill-opacity:0.5
+    style KT fill:#ffe1e1,fill-opacity:0.5
+    style KC fill:#e1ffe1,fill-opacity:0.5
+    style ML fill:#f3e1ff,fill-opacity:0.5
+    style PG fill:#e1f5ff,fill-opacity:0.5
+    style GF fill:#fff4e1,fill-opacity:0.5
+    style EM fill:#ffe1e1,fill-opacity:0.5
 ```
 
 ---
@@ -174,16 +171,16 @@ flowchart LR
     MLflow --> Staging[Staging]
     Staging --> Prod[Production]
     
-    style Load fill:#e1f5ff
-    style Validate fill:#fff4e1
-    style Transform fill:#ffe1e1
-    style Prep fill:#ffe1e1
-    style Train fill:#e1ffe1
-    style Eval fill:#e1ffe1
-    style Monitor fill:#f0e1ff
-    style MLflow fill:#f0e1ff
-    style Staging fill:#ffe1f0
-    style Prod fill:#ffe1f0
+    style Load fill:#e1f5ff,fill-opacity:0.5
+    style Validate fill:#fff4e1,fill-opacity:0.5
+    style Transform fill:#ffe1e1,fill-opacity:0.5
+    style Prep fill:#ffe1e1,fill-opacity:0.5
+    style Train fill:#e1ffe1,fill-opacity:0.5
+    style Eval fill:#e1ffe1,fill-opacity:0.5
+    style Monitor fill:#f0e1ff,fill-opacity:0.5
+    style MLflow fill:#f0e1ff,fill-opacity:0.5
+    style Staging fill:#ffe1f0,fill-opacity:0.5
+    style Prod fill:#ffe1f0,fill-opacity:0.5
 ```
 
 ---
@@ -223,15 +220,15 @@ flowchart LR
     Pred --> DB
     Pred --> Email[Email Alert]
     
-    style Data fill:#e1f5ff
-    style Clean fill:#fff4e1
-    style Features fill:#fff4e1
-    style Load fill:#e1ffe1
-    style Predict fill:#e1ffe1
-    style Score fill:#f0e1ff
-    style Pred fill:#f0e1ff
-    style DB fill:#e1f5ff
-    style Email fill:#f0ffe1
+    style Data fill:#e1f5ff,fill-opacity:0.5
+    style Clean fill:#fff4e1,fill-opacity:0.5
+    style Features fill:#fff4e1,fill-opacity:0.5
+    style Load fill:#e1ffe1,fill-opacity:0.5
+    style Predict fill:#e1ffe1,fill-opacity:0.5
+    style Score fill:#f0e1ff,fill-opacity:0.5
+    style Pred fill:#f0e1ff,fill-opacity:0.5
+    style DB fill:#e1f5ff,fill-opacity:0.5
+    style Email fill:#f0ffe1,fill-opacity:0.5
 ```
 
 ---
@@ -248,12 +245,12 @@ flowchart LR
     Serialize --> Publish[Publish to Kafka]
     Publish --> Topic[Topic real-time-payments]
     
-    style API fill:#e1f5ff
-    style Fetch fill:#fff4e1
-    style Process fill:#fff4e1
-    style Serialize fill:#fff4e1
-    style Publish fill:#fff4e1
-    style Topic fill:#ffe1e1
+    style API fill:#e1f5ff,fill-opacity:0.5
+    style Fetch fill:#fff4e1,fill-opacity:0.5
+    style Process fill:#fff4e1,fill-opacity:0.5
+    style Serialize fill:#fff4e1,fill-opacity:0.5
+    style Publish fill:#fff4e1,fill-opacity:0.5
+    style Topic fill:#ffe1e1,fill-opacity:0.5
 ```
 
 **Fonctionnalités** :
@@ -278,14 +275,14 @@ flowchart LR
     Decide --> DB[PostgreSQL]
     Decide --> Email[Email Service]
     
-    style Topic fill:#ffe1e1
-    style Consume fill:#e1ffe1
-    style Deserialize fill:#e1ffe1
-    style Preprocess fill:#e1ffe1
-    style Predict fill:#f0e1ff
-    style Decide fill:#f0e1ff
-    style DB fill:#e1f5ff
-    style Email fill:#f0ffe1
+    style Topic fill:#ffe1e1,fill-opacity:0.5
+    style Consume fill:#e1ffe1,fill-opacity:0.5
+    style Deserialize fill:#e1ffe1,fill-opacity:0.5
+    style Preprocess fill:#e1ffe1,fill-opacity:0.5
+    style Predict fill:#f0e1ff,fill-opacity:0.5
+    style Decide fill:#f0e1ff,fill-opacity:0.5
+    style DB fill:#e1f5ff,fill-opacity:0.5
+    style Email fill:#f0ffe1,fill-opacity:0.5
 ```
 
 **Fonctionnalités** :
@@ -311,14 +308,14 @@ flowchart LR
     Registry --> Staging[Staging Alias]
     Staging --> Prod[Production Alias]
     
-    style Pipeline fill:#e1ffe1
-    style Metrics fill:#fff4e1
-    style Params fill:#fff4e1
-    style Tracking fill:#f0e1ff
-    style Registry fill:#f0e1ff
-    style Artifacts fill:#f0e1ff
-    style Staging fill:#ffe1f0
-    style Prod fill:#ffe1f0
+    style Pipeline fill:#e1ffe1,fill-opacity:0.5
+    style Metrics fill:#fff4e1,fill-opacity:0.5
+    style Params fill:#fff4e1,fill-opacity:0.5
+    style Tracking fill:#f0e1ff,fill-opacity:0.5
+    style Registry fill:#f0e1ff,fill-opacity:0.5
+    style Artifacts fill:#f0e1ff,fill-opacity:0.5
+    style Staging fill:#ffe1f0,fill-opacity:0.5
+    style Prod fill:#ffe1f0,fill-opacity:0.5
 ```
 
 **Fonctionnalités** :
@@ -374,15 +371,15 @@ flowchart LR
     Neon --> GrafanaCloud[Grafana Cloud]
     HF --> Resend[Resend Email]
     
-    style Dev fill:#e1f5ff
-    style Poetry fill:#fff4e1
-    style GitHub fill:#e1ffe1
-    style HF fill:#f0e1ff
-    style Redpanda fill:#ffe1e1
-    style Neon fill:#e1f5ff
-    style Supabase fill:#fff4e1
-    style GrafanaCloud fill:#ffe1f0
-    style Resend fill:#f0ffe1
+    style Dev fill:#e1f5ff,fill-opacity:0.5
+    style Poetry fill:#fff4e1,fill-opacity:0.5
+    style GitHub fill:#e1ffe1,fill-opacity:0.5
+    style HF fill:#f0e1ff,fill-opacity:0.5
+    style Redpanda fill:#ffe1e1,fill-opacity:0.5
+    style Neon fill:#e1f5ff,fill-opacity:0.5
+    style Supabase fill:#fff4e1,fill-opacity:0.5
+    style GrafanaCloud fill:#ffe1f0,fill-opacity:0.5
+    style Resend fill:#f0ffe1,fill-opacity:0.5
 ```
 
 ---
