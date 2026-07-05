@@ -239,15 +239,17 @@
             const mermaidElements = document.querySelectorAll('.mermaid');
             mermaidElements.forEach(el => {
               let scale = 1;
+              let widthScale = 1;
               el.addEventListener('wheel', function(e) {
                 if (e.ctrlKey || e.metaKey) {
                   e.preventDefault();
                   const delta = e.deltaY > 0 ? -0.1 : 0.1;
                   scale = Math.max(0.5, Math.min(5, scale + delta));
+                  widthScale = Math.max(0.5, Math.min(3, widthScale + delta * 0.5));
                   el.style.setProperty('height', `${600 * scale}px`, 'important');
-                  el.style.setProperty('width', `${800 * scale}px`, 'important');
+                  el.style.setProperty('width', `${800 * widthScale}px`, 'important');
                   el.style.setProperty('max-height', `${600 * scale}px`, 'important');
-                  el.style.setProperty('max-width', `${800 * scale}px`, 'important');
+                  el.style.setProperty('max-width', `${800 * widthScale}px`, 'important');
                   // Center horizontal scroll
                   const content = document.querySelector('.content');
                   if (content) {
