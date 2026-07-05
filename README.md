@@ -59,12 +59,9 @@ Automatic-Fraud-Detection
 
 
 
-# Améliorations possibles
-
-Amélioration de la documentation
-- Adapter les Schemas pour le format présentation
-- Déploiement de Docsify et Slidev
-- Déploiement de Slidev en 
+# Améliorations en cours
+- Amélioration de la documentation
+- Préparation du projet au format Slidev
 
 ## Améliorer le model avec des resssources moins limitées
 - Ajouter des features pour une meilleure détection
@@ -106,6 +103,6 @@ Amélioration de la documentation
 - API : https://sdacelo-real-time-fraud-detection.hf.space/
 - MLflow : https://mlflai-mlflow.hf.space/#/models
 - Producer : https://huggingface.co/spaces/jefraudai/Producer
-- Kafka : https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/
+- Kafka : https://console.aiven.io/account/a5c5301632e1/project/jefraudai/services/kafka-2587bcbc/topics/real-time-payments/details/configuration
 - Consumer : https://huggingface.co/spaces/jefraudai/consumer
 - Dashboard : https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598?from=2023-12-04T13:55:58.556Z&to=2028-12-03T13:55:58.556Z&timezone=browser

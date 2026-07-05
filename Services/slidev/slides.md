@@ -17,19 +17,196 @@ mdc: true
 ## Système de Détection de Fraudes en Temps Réel
 
 ### Concevoir et mettre en oeuvre des pipelines de données (pour l'IA)
-
 ---
 transition: fade-out
 ---
 
-# Besoin du Projet
+# Enjeux et Solution
 
-## Alertes en temps réel
-Être averti dès qu'une fraude est détectée
+<div class="grid grid-cols-2 gap-8 pt-8">
 
-## Rapport quotidien
-Pouvoir vérifier chaque matin tous les paiements et fraudes intervenus la veille
+<div>
 
+## 🚨 Enjeu : Réactivité
+
+<div class="text-sm opacity-80 mt-2">
+
+**Problème** : Les fraudes bancaires causent des pertes financières importantes
+
+- Délai de détection = pertes cumulées
+- Nécessité d'intervention immédiate
+- Impact sur la confiance client
+
+</div>
+
+</div>
+
+<div>
+
+## 📊 Enjeu : Visibilité
+
+<div class="text-sm opacity-80 mt-2">
+
+**Problème** : Manque de visibilité sur les patterns de fraude
+
+- Difficulté d'analyse rétrospective
+- Absence de dashboard centralisé
+- Besoin d'outils d'investigation
+
+</div>
+
+</div>
+
+</div>
+---
+transition: fade-out
+---
+
+# Solution de détection en temps réel
+
+<div class="grid grid-cols-3 gap-6 pt-8">
+
+<div>
+
+## 📥 Collecte des données
+
+<div class="text-sm opacity-80 mt-2">
+
+**Objectif** : Ingestion continue des transactions
+
+- API Payment en temps réel
+
+</div>
+
+</div>
+
+<div>
+
+## 🚨 Alertes
+
+<div class="text-sm opacity-80 mt-2">
+
+**Objectif** : Être averti dès qu'une fraude est détectée
+
+- Détection instantanée des transactions suspectes
+- Notification immédiate par email
+
+</div>
+
+</div>
+
+
+<div>
+
+## 📊 Rapport quotidien
+
+<div class="text-sm opacity-80 mt-2">
+
+**Objectif** : Pouvoir vérifier chaque matin tous les paiements et fraudes intervenus la veille
+
+- Vue d'ensemble des transactions
+- Analyse des tendances de fraude
+
+</div>
+
+</div>
+
+</div>
+
+---
+transition: slide-left
+---
+
+# Architecture Déployée
+
+```mermaid
+graph LR
+    API[Payment API] ---> KP[Kafka Producer] ---> KT[Cluster Topic<br/>Kafka] ---> KC[Kafka Consumer<br/>ML Prediction]
+    KC ---> PG[Predictions <br/>PostgreSQL]
+    ML[Model Registry<br/>MLflow] ---> KC
+    ML ---> S3[Artifact Store<br/>S3]
+    ML ---> PG2[Metadata <br/>PostgreSQL]
+    PG ---> GF[Dashboard<br/>Grafana]
+    KC ---> EM[Notifications<br/>Email]    
+
+    style API fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style KP fill:#fed7aa,stroke:#f97316,stroke-width:2px
+    style KT fill:#fed7aa,stroke:#f97316,stroke-width:2px
+    style KC fill:#f5d0fe,stroke:#d946ef,stroke-width:2px
+    style ML fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style PG fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style S3 fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style PG2 fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style GF fill:#fecaca,stroke:#ef4444,stroke-width:2px
+    style EM fill:#fecaca,stroke:#ef4444,stroke-width:2px
+```
+
+<div class="grid grid-cols-3 gap-4 pt-4 text-xs">
+
+<div>
+<span style="display:inline-flex;align-items:center;gap:18px;">
+<span style="display:inline-flex;align-items:center;gap:6px;">
+    <img src="https://cdn.simpleicons.org/mlflow" width="16"/>
+    <img src="https://cdn.simpleicons.org/huggingface" width="16"/>   
+</span>
+<span style="display:inline-flex;align-items:center;gap:6px;">
+    <img src="https://api.iconify.design/carbon:object-storage.svg" width="16"/>
+    <img src="https://cdn.simpleicons.org/supabase" width="16"/>
+</span>
+<span style="display:inline-flex;align-items:center;gap:6px;">
+    <img src="https://cdn.simpleicons.org/postgresql" width="16"/>
+    <img src="https://cdn.simpleicons.org/neon" width="16"/>
+</span>
+</span>
+
+### Machine Learning
+
+- **AutoML** : AutoGluon
+- **MLflow** : HF Spaces
+  - **S3** : Supabase
+  - **PostgreSQL** : Neon
+
+</div>
+
+<div>
+
+<span style="display:inline-flex;align-items:center;gap:18px;">
+    <span style="display:inline-flex;align-items:center;gap:6px;">
+        <img src="https://cdn.simpleicons.org/python" width="16"/>
+        <img src="https://cdn.simpleicons.org/huggingface" width="16"/>
+    </span>
+    <span style="display:inline-flex;align-items:center;gap:6px;">
+        <img src="https://cdn.simpleicons.org/apachekafka" width="16"/>
+    </span>
+    <span style="display:inline-flex;align-items:center;gap:6px;">
+        <img src="https://cdn.simpleicons.org/postgresql" width="16"/>
+        <img src="https://cdn.simpleicons.org/neon" width="16"/>
+    </span>
+</span>
+
+### Streaming Predictions
+
+- **Producer** : Hugging Face
+- **Kafka Cluster** : Aiven
+- **Consumer** : Hugging Face
+  - **PostgreSQL** : NeonDB
+
+</div>
+
+<div>
+<span style="display:inline-flex;align-items:center;gap:6px;">
+    <img src="https://cdn.simpleicons.org/resend" width="16"/>
+    <img src="https://cdn.simpleicons.org/grafana" width="16"/>
+</span>
+
+### Monitoring
+
+- **Validation & Performance** : Evidently AI
+- **Notification Email** : Resend
+- **Dashboard** : Grafana Cloud
+</div>
+
+</div>
 
 ---
 transition: slide-left
@@ -39,46 +216,70 @@ transition: slide-left
 
 ```mermaid
 graph LR
-    subgraph "Source"
-        direction LR
-        API[Payment API]
-    end
+    API[Payment API] ---> KP[Kafka Producer] ---> KT[Cluster Topic<br/>Kafka] ---> KC[Kafka Consumer<br/>ML Prediction]
+    KC ---> PG[Predictions <br/>PostgreSQL]
+    ML[Model Registry<br/>MLflow] ---> KC
+    ML ---> S3[Artifact Store<br/>S3]
+    ML ---> PG2[Metadata <br/>PostgreSQL]
+    PG ---> GF[Dashboard<br/>Grafana]
+    KC ---> EM[Notifications<br/>Email]    
+    CSV[CSV Dataset] ---> Training[Model Training] ---> ML
 
-    subgraph "Streaming"
-        direction LR
-        KP[Kafka Producer]
-        KT[Kafka Topic<br/>real-time-payments]
-        KC[Fraud Consumer<br/>ML Prediction]
-    end
-
-    subgraph "ML & Storage"
-        direction LR
-        ML[MLflow<br/>Model Registry]
-        PG[PostgreSQL<br/>Neon DB]
-    end
-
-    subgraph "Monitoring & Alerts"
-        direction LR
-        GF[Grafana<br/>Dashboard]
-        EM[Email<br/>Resend]
-    end
-
-    API --> KP --> KT --> KC
-    KC --> PG
-    KC --> ML
-    PG --> GF
-    KC --> EM
-
-    style API fill:#e1f5ff,fill-opacity:0.5
-    style KP fill:#fff4e1,fill-opacity:0.5
-    style KT fill:#ffe1e1,fill-opacity:0.5
-    style KC fill:#e1ffe1,fill-opacity:0.5
-    style ML fill:#f3e1ff,fill-opacity:0.5
-    style PG fill:#e1f5ff,fill-opacity:0.5
-    style GF fill:#fff4e1,fill-opacity:0.5
-    style EM fill:#ffe1e1,fill-opacity:0.5
+    style API fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style KP fill:#fed7aa,stroke:#f97316,stroke-width:2px
+    style KT fill:#fed7aa,stroke:#f97316,stroke-width:2px
+    style KC fill:#f5d0fe,stroke:#d946ef,stroke-width:2px
+    style ML fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style PG fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style S3 fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style PG2 fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style GF fill:#fecaca,stroke:#ef4444,stroke-width:2px
+    style EM fill:#fecaca,stroke:#ef4444,stroke-width:2px
+    style CSV fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Training fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
 ```
 
+---
+transition: slide-left
+---
+
+# Architecture Générale
+
+```mermaid
+graph LR
+    API[Payment API<br/>Hugging Face] ---> KP[Kafka Producer<br/>Hugging Face] ---> KT[Kafka Topic<br/>Aiven] ---> KC[Kafka Consumer<br/>ML Prediction<br/>Hugging Face]
+    KC ---> PG[Predictions<br/>PostgreSQL<br/>Neon DB]
+    ML[Model Registry<br/>MLflow] ---> KC
+    ML ---> S3[Artifact Store<br/>S3<br/>Supabase]
+    ML ---> PG2[Metadata<br/>PostgreSQL<br/>Neon DB]
+    PG ---> GF[Dashboard<br/>Grafana]
+    KC ---> EM[Email<br/>Resend]
+    
+    CSV[CSV Dataset] ---> Training[Model Training<br/>Jupyter Notebook] ---> ML
+
+    style API fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style KP fill:#fed7aa,stroke:#f97316,stroke-width:2px
+    style KT fill:#fed7aa,stroke:#f97316,stroke-width:2px
+    style KC fill:#f5d0fe,stroke:#d946ef,stroke-width:2px
+    style ML fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style PG fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style S3 fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style PG2 fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style GF fill:#fecaca,stroke:#ef4444,stroke-width:2px
+    style EM fill:#fecaca,stroke:#ef4444,stroke-width:2px
+    style CSV fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Training fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+```
+
+<div class="grid grid-cols-5 gap-2 pt-4 text-sm">
+
+<div style="color:#3b82f6">● Source/API</div>
+<div style="color:#f97316">● Kafka</div>
+<div style="color:#d946ef">● Consumer</div>
+<div style="color:#8b5cf6">● ML</div>
+<div style="color:#22c55e">● Storage</div>
+
+</div>
 ---
 transition: slide-left
 ---
@@ -90,11 +291,12 @@ transition: slide-left
 <div>
 
 ## Infrastructure Cloud
-- **Kafka (Redpanda)** : Streaming de messages
-- **PostgreSQL (Neon)** : Base de données
-- **MLflow (HF Spaces)** : Tracking ML
-- **Grafana** : Monitoring
-- **Resend** : Emails
+- **HuggingFace Spaces** : Déploiement API & Consumer
+- **Aiven** : Cluster Kafka
+- **NeonDB** : PostgreSQL serverless
+- **Supabase** : S3 Storage & PostgreSQL
+- **Grafana Cloud** : Monitoring
+- **Resend** : Emails transactionnels
 
 </div>
 
@@ -118,39 +320,18 @@ transition: slide-left
 
 ```mermaid
 flowchart LR
-    subgraph Source["Source de Données"]
-        API[Payment API]
-    end
-    
-    subgraph Ingestion["Ingestion"]
-        Producer[Kafka Producer]
-    end
-    
-    subgraph Streaming["Streaming Layer"]
-        Topic[Kafka Topic<br/>real-time-payments]
-    end
-    
-    subgraph Processing["Traitement"]
-        Consumer[Kafka Consumer]
-        ML[ML Prediction Model]
-    end
-    
-    subgraph Storage["Stockage"]
-        DB[(PostgreSQL)]
-    end
-    
-    subgraph Monitoring["Monitoring & Alertes"]
-        Grafana[Grafana Dashboard]
-        Email[Email Notifications]
-    end
-    
-    API --> Producer
-    Producer --> Topic
-    Topic --> Consumer
-    Consumer --> ML
-    ML --> DB
-    DB --> Grafana
-    DB --> Email
+    API[Payment API] ---> Producer[Kafka Producer] ---> Topic[Kafka Topic<br/>real-time-payments] ---> Consumer[Kafka Consumer] ---> ML[ML Prediction Model] ---> DB[(PostgreSQL)]
+    DB ---> Grafana[Grafana Dashboard]
+    DB ---> Email[Email Notifications]
+
+    style API fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Producer fill:#fed7aa,stroke:#f97316,stroke-width:2px
+    style Topic fill:#fed7aa,stroke:#f97316,stroke-width:2px
+    style Consumer fill:#fed7aa,stroke:#f97316,stroke-width:2px
+    style ML fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style DB fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style Grafana fill:#fecaca,stroke:#ef4444,stroke-width:2px
+    style Email fill:#fecaca,stroke:#ef4444,stroke-width:2px
 ```
 
 ---
@@ -161,26 +342,26 @@ transition: slide-left
 
 ```mermaid
 flowchart LR
-    Load[Chargement] --> Validate[Validation]
-    Validate --> Transform[Transformation]
-    Transform --> Prep[Préparation]
-    Prep --> Train[Entraînement]
-    Train --> Eval[Évaluation]
-    Eval --> Monitor[Monitoring]
-    Monitor --> MLflow[Logging MLflow]
-    MLflow --> Staging[Staging]
-    Staging --> Prod[Production]
+    Load[Chargement] ---> Validate[Validation]
+    Validate ---> Transform[Transformation]
+    Transform ---> Prep[Préparation]
+    Prep ---> Train[Entraînement]
+    Train ---> Eval[Évaluation]
+    Eval ---> Monitor[Monitoring]
+    Monitor ---> MLflow[Logging MLflow]
+    MLflow ---> Staging[Staging]
+    Staging ---> Prod[Production]
     
-    style Load fill:#e1f5ff,fill-opacity:0.5
-    style Validate fill:#fff4e1,fill-opacity:0.5
-    style Transform fill:#ffe1e1,fill-opacity:0.5
-    style Prep fill:#ffe1e1,fill-opacity:0.5
-    style Train fill:#e1ffe1,fill-opacity:0.5
-    style Eval fill:#e1ffe1,fill-opacity:0.5
-    style Monitor fill:#f0e1ff,fill-opacity:0.5
-    style MLflow fill:#f0e1ff,fill-opacity:0.5
-    style Staging fill:#ffe1f0,fill-opacity:0.5
-    style Prod fill:#ffe1f0,fill-opacity:0.5
+    style Load fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Validate fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Transform fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Prep fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Train fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style Eval fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style Monitor fill:#fecaca,stroke:#ef4444,stroke-width:2px
+    style MLflow fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style Staging fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style Prod fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
 ```
 
 ---
@@ -210,25 +391,25 @@ transition: slide-left
 
 ```mermaid
 flowchart LR
-    Data[Transaction] --> Clean[Nettoyage]
-    Clean --> Features[Extraction]
-    Features --> Load[Chargement Modèle]
-    Load --> Predict[Prédiction]
-    Predict --> Score[Score]
-    Predict --> Pred[Prediction]
-    Score --> DB[PostgreSQL]
-    Pred --> DB
-    Pred --> Email[Email Alert]
+    Data[Transaction] ---> Clean[Nettoyage]
+    Clean ---> Features[Extraction]
+    Features ---> Load[Chargement Modèle]
+    Load ---> Predict[Prédiction]
+    Predict ---> Score[Score]
+    Predict ---> Pred[Prediction]
+    Score ---> DB[PostgreSQL]
+    Pred ---> DB
+    Pred ---> Email[Email Alert]
     
-    style Data fill:#e1f5ff,fill-opacity:0.5
-    style Clean fill:#fff4e1,fill-opacity:0.5
-    style Features fill:#fff4e1,fill-opacity:0.5
-    style Load fill:#e1ffe1,fill-opacity:0.5
-    style Predict fill:#e1ffe1,fill-opacity:0.5
-    style Score fill:#f0e1ff,fill-opacity:0.5
-    style Pred fill:#f0e1ff,fill-opacity:0.5
-    style DB fill:#e1f5ff,fill-opacity:0.5
-    style Email fill:#f0ffe1,fill-opacity:0.5
+    style Data fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Clean fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Features fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style Load fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style Predict fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style Score fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style Pred fill:#ddd6fe,stroke:#8b5cf6,stroke-width:2px
+    style DB fill:#bbf7d0,stroke:#22c55e,stroke-width:2px
+    style Email fill:#fecaca,stroke:#ef4444,stroke-width:2px
 ```
 
 ---
@@ -239,11 +420,11 @@ transition: slide-left
 
 ```mermaid
 flowchart LR
-    API[Payment API] --> Fetch[Fetch Transaction]
-    Fetch --> Process[Process Data]
-    Process --> Serialize[Serialize JSON]
-    Serialize --> Publish[Publish to Kafka]
-    Publish --> Topic[Topic real-time-payments]
+    API[Payment API] ---> Fetch[Fetch Transaction]
+    Fetch ---> Process[Process Data]
+    Process ---> Serialize[Serialize JSON]
+    Serialize ---> Publish[Publish to Kafka]
+    Publish ---> Topic[Topic real-time-payments]
     
     style API fill:#e1f5ff,fill-opacity:0.5
     style Fetch fill:#fff4e1,fill-opacity:0.5
@@ -267,13 +448,13 @@ transition: slide-left
 
 ```mermaid
 flowchart LR
-    Topic[Topic] --> Consume[Consume Message]
-    Consume --> Deserialize[Deserialize JSON]
-    Deserialize --> Preprocess[Preprocess Data]
-    Preprocess --> Predict[ML Prediction]
-    Predict --> Decide[Decision]
-    Decide --> DB[PostgreSQL]
-    Decide --> Email[Email Service]
+    Topic[Topic] ---> Consume[Consume Message]
+    Consume ---> Deserialize[Deserialize JSON]
+    Deserialize ---> Preprocess[Preprocess Data]
+    Preprocess ---> Predict[ML Prediction]
+    Predict ---> Decide[Decision]
+    Decide ---> DB[PostgreSQL]
+    Decide ---> Email[Email Service]
     
     style Topic fill:#ffe1e1,fill-opacity:0.5
     style Consume fill:#e1ffe1,fill-opacity:0.5
@@ -300,13 +481,13 @@ transition: slide-left
 
 ```mermaid
 flowchart LR
-    Pipeline[ML Pipeline] --> Tracking[Tracking Server]
-    Metrics[Métriques] --> Tracking
-    Params[Paramètres] --> Tracking
-    Tracking --> Registry[Model Registry]
-    Registry --> Artifacts[Artifact Store]
-    Registry --> Staging[Staging Alias]
-    Staging --> Prod[Production Alias]
+    Pipeline[ML Pipeline] ---> Tracking[Tracking Server]
+    Metrics[Métriques] ---> Tracking
+    Params[Paramètres] ---> Tracking
+    Tracking ---> Registry[Model Registry]
+    Registry ---> Artifacts[Artifact Store]
+    Registry ---> Staging[Staging Alias]
+    Staging ---> Prod[Production Alias]
     
     style Pipeline fill:#e1ffe1,fill-opacity:0.5
     style Metrics fill:#fff4e1,fill-opacity:0.5
@@ -362,14 +543,14 @@ transition: slide-left
 
 ```mermaid
 flowchart LR
-    Dev[Code Python] --> GitHub[GitHub Actions]
-    Poetry[Poetry] --> Dev
-    GitHub --> HF[HuggingFace Spaces]
-    HF --> Redpanda[Redpanda Cloud]
-    HF --> Neon[Neon PostgreSQL]
-    HF --> Supabase[Supabase S3]
-    Neon --> GrafanaCloud[Grafana Cloud]
-    HF --> Resend[Resend Email]
+    Dev[Code Python] ---> GitHub[GitHub Actions]
+    Poetry[Poetry] ---> Dev
+    GitHub ---> HF[HuggingFace Spaces]
+    HF ---> Redpanda[Redpanda Cloud]
+    HF ---> Neon[Neon PostgreSQL]
+    HF ---> Supabase[Supabase S3]
+    Neon ---> GrafanaCloud[Grafana Cloud]
+    HF ---> Resend[Resend Email]
     
     style Dev fill:#e1f5ff,fill-opacity:0.5
     style Poetry fill:#fff4e1,fill-opacity:0.5

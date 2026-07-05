@@ -160,3 +160,8 @@ data/raw/
 # disabled services
 services/_disabled/
 
+# binaries
+Services/slidev/node_modules
+
+# vscode
+.vscode/

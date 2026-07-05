@@ -3,7 +3,7 @@
 ## 📚 Sommaire
 
 - [Vue d'ensemble](overview.md)
-- [Architecture Détaillée](architecture.md)
+- [Architecture Détaillée](jefraudai/Services/docsify/docs/architecture.md)
 - [Schéma de Données](data.md)
 - [Pipeline ML](pipeline.md)
 - [Configuration](configuration.md)

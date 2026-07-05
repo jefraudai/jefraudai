@@ -1,256 +1,189 @@
-# Architecture Détaillée
+# Automatic Fraud Detection
+  
+## Besoins fonctionnels
 
-## 🏛️ Schéma de l'Architecture
-
-Le système de détection de fraude est construit selon une architecture microservices orientée événements, utilisant Kafka pour le streaming temps réel et MLflow pour la gestion des modèles ML.
+Système de détection de fraude en temps réel utilisant l'IA pour analyser les transactions de paiement et alerter automatiquement en cas de suspicion.
+- Être averti en temps réel qu'une fraude est détectée
+- Une fois chaque matin, pouvoir vérifier tous les paiements et fraudes intervenus la veille.
+  
+## Architecture Globale
 
 ```mermaid
 graph TD
-    subgraph "Couche Externe"
-        UI[API Endpoint<br/>HuggingFace Space]
+    subgraph "Sources<span>&nbsp</span>"
+        API[Payment API<span>&nbsp</span>]
+        CSV[CSV<br/>Training Data<span>&nbsp</span>]
     end
-    
-    subgraph "Couche Streaming"
-        KP[Kafka Producer<br/>Python]
-        KT[Kafka Topic<br/>real-time-payments]
-        KC[Kafka Consumer<br/>Python]
+
+    subgraph "Streaming"
+        KP[Kafka Producer<span>&nbsp</span>]
+        KT[Cluster Topic<span>&nbsp</span><br/>Kafka]
+        KC[Fraud Consumer<span>&nbsp</span><br/>ML Prediction]
     end
-    
-    subgraph "Couche ML"
-        ML[MLflow Server<br/>Model Registry]
-        AG[AutoGluon Model<br/>TabularPredictor]
+
+    subgraph "ML "
+        TR[Training<br/>Pipeline]
+        ML[MLflow<br/>Model Registry]
     end
-    
-    subgraph "Couche Données"
-        PG[PostgreSQL<br/>Predictions<br/>Neon Cloud]
-        PG2[PostgreSQL<br/>MlFlow<br/>Neon Cloud]
-        S3[Supabase S3<br/>Artifacts Storage]
+
+    subgraph "Storage<span>&nbsp</span>"
+        PG[Predictions<span>&nbsp</span><br/>PostgreSQL]
     end
-    
-    subgraph "Couche Monitoring"
-        GF[Grafana Cloud<br/>Dashboard]
-        RS[Resend<br/>Email Service]
+
+    subgraph "Monitoring & Alerts"
+        GF[Dashboard<br/>Grafana]
+        EM[Email<br/>Resend<span>&nbsp</span>]
     end
-    
-    UI --> KP
+
+    API --> KP
+    CSV --> TR
+    TR --> ML
     KP --> KT
     KT --> KC
-    KC --> ML
-    ML --> PG2
-    ML --> AG
     KC --> PG
-    ML --> S3
+    ML --> KC
     PG --> GF
-    KC --> RS
-    
-    style UI fill:#e1f5ff
-    style KP fill:#fff4e1
-    style KC fill:#e1ffe1
-    style ML fill:#f3e1ff
-    style PG fill:#e1f5ff
-    style GF fill:#fff4e1
+    KC --> EM
+
+    style API fill:#e1f5ff
+    style CSV fill:#e1f5ff
+    style KP fill:#ffe0b2
+    style KT fill:#ffe0b2
+    style KC fill:#fff4e1
+    style TR fill:#f5e1ff
+    style ML fill:#f5e1ff
+    style PG fill:#e1ffe1
+    style GF fill:#ffcccb
+    style EM fill:#ffcccb
 ```
 
-## 🔄 Pipeline de Traitement Temps Réel
-
-### Flux de Traitement
-
-```mermaid
-sequenceDiagram
-    participant API as Payment API
-    participant KP as Kafka Producer
-    participant KT as Kafka Topic
-    participant KC as Kafka Consumer
-    participant ML as MLflow Model
-    participant PG as PostgreSQL
-    participant RS as Resend Email
-    
-    API->>KP: Transaction Data
-    KP->>KP: Sérialisation JSON
-    KP->>KT: Publish Message
-    KT->>KC: Consume Message
-    KC->>ML: Load Model (alias: prod)
-    ML-->>KC: Model Loaded
-    KC->>KC: Preprocess Features
-    KC->>ML: Predict Fraud
-    ML-->>KC: Prediction + Confidence
-    KC->>PG: Store Prediction
-    KC->>KC: Check Fraud Threshold
-    alt Fraud Detected
-        KC->>RS: Send Alert Email
-        RS-->>KC: Email Sent
-    end
-```
-
-### Producer Service
-
-```mermaid
-graph TD
-    subgraph "Producer Service"
-        P1[Payment API Listener]
-        P2[Data Validation]
-        P3[JSON Serialization]
-        P4[Kafka Producer Client]
-        P5[Error Handler]
-    end
-    
-    subgraph "Kafka Cluster"
-        K1[Topic: real-time-payments]
-        K2[Partitions: 3]
-        K3[Replication Factor: 2]
-    end
-    
-    P1 --> P2
-    P2 --> P3
-    P3 --> P4
-    P4 --> K1
-    P4 --> P5
-    P5 -->|Retry| P4
-    
-    style P1 fill:#e1f5ff
-    style P4 fill:#fff4e1
-    style K1 fill:#ffe1e1
-```
-
-**Fonctionnalités du Producer:**
-- Écoute les événements de paiement depuis l'API
-- Valide la structure des données
-- Sérialise en JSON
-- Publie sur le topic Kafka `real-time-payments`
-- Gestion des erreurs avec retry automatique
-
-### Consumer Service
-
-```mermaid
-graph TD
-    subgraph "Consumer Service"
-        C1[Kafka Consumer Client]
-        C2[Message Deserializer]
-        C3[Feature Preprocessing]
-        C4[MLflow Model Loader]
-        C5[Prediction Engine]
-        C6[Database Handler]
-        C7[Alert Manager]
-    end
-    
-    subgraph "MLflow"
-        M1[Model Registry]
-        M2[Production Alias<br/>prod]
-        M3[Model Artifacts]
-    end
-    
-    subgraph "PostgreSQL"
-        D1[Predictions Table]
-    end
-    
-    C1 --> C2
-    C2 --> C3
-    C3 --> C4
-    C4 --> M1
-    M1 --> M2
-    M2 --> M3
-    M3 --> C4
-    C4 --> C5
-    C5 --> C6
-    C6 --> D1
-    C5 --> C7
-    C7 -->|Fraud Alert| Email
-    
-    style C1 fill:#e1f5ff
-    style C5 fill:#e1ffe1
-    style M1 fill:#f3e1ff
-    style D1 fill:#fff4e1
-```
-
-**Fonctionnalités du Consumer:**
-- Consomme les messages du topic Kafka
-- Charge le modèle depuis MLflow via l'alias `prod`
-- Prétraite les features (imputation, scaling, encoding)
-- Génère les prédictions avec score de confiance
-- Stocke les résultats en PostgreSQL
-- Déclenche les alertes email en cas de fraude
+<div style="page-break-before: always;"></div>
 
 
-## 🔐 Sécurité et Gouvernance
+## Streaming avec Kafka (Aiven / Redpanda)
 
-### Gestion des Secrets
+- **Pourquoi** : permettre le traitement **temps réel des transactions financières** dans une architecture event-driven.
+- **Avantages** :
+    - Découplage fort entre producteurs et consommateurs
+    - Haute scalabilité horizontale (partitionnement des topics)
+    - Tolérance aux pannes et reprise automatique
+    - Possibilité de rejouer les événements (event replay)
+    - Buffering naturel en cas de pics de charge
+- **Alternative écartée** :
+    - REST API directe → couplage fort, pas de buffering, non adapté aux pics
+    - Airflow / batch processing → latence trop élevée, pas adapté au temps réel
 
-```mermaid
-graph TD
-    subgraph "Secrets Management"
-        G1[GitHub Secrets]
-        G2[Environment Variables]
-        G3[Config YAML Override]
-    end
-    
-    subgraph "Credentials"
-        C1[Database URI]
-        C2[MLflow Tracking URI]
-        C3[Kafka Credentials]
-        C4[Resend API Key]
-    end
-    
-    subgraph "Access Control"
-        A1[Model Aliases<br/>Staging/Production]
-        A2[Database Roles]
-        A3[Kafka ACLs]
-    end
-    
-    G1 --> G2
-    G2 --> G3
-    G2 --> C1
-    G2 --> C2
-    G2 --> C3
-    G2 --> C4
-    C1 --> A2
-    C2 --> A1
-    C3 --> A3
-    
-    style G1 fill:#e1f5ff
-    style C1 fill:#fff4e1
-    style A1 fill:#e1ffe1
-```
+---
 
-## 🚀 Infrastructure Cloud
+## Architecture microservices (Producer / Consumer séparés)
 
-### Déploiement sur HuggingFace Spaces
+- **Pourquoi** : séparation des responsabilités pour le traitement des flux de paiement et la détection de fraude.
+- **Avantages** :
+    - Scalabilité indépendante des composants (producer vs consumer)
+    - Isolation des pannes (un consumer défaillant n’impacte pas le système global)
+    - Déploiement et évolution indépendants
+    - Meilleure maintenabilité du code
+- **Alternative écartée** :
+    - Monolithe → difficulté de scaling, couplage fort, point de défaillance unique
 
-```mermaid
-graph TD
-    subgraph "HuggingFace Spaces"
-        HF1[Producer Service<br/>Python + Docker]
-        HF2[Consumer Service<br/>Python + Docker]
-        HF3[MLflow UI<br/>Python + Docker]
-    end
-    
-    subgraph "External Cloud"
-        EC1[Redpanda Cloud<br/>Kafka]
-        EC2[Neon Cloud<br/>PostgreSQL]
-        EC3[Supabase<br/>S3 Storage]
-    end
-    
-    subgraph "Monitoring Cloud"
-        MC1[Grafana Cloud]
-        MC2[Resend<br/>Email Service]
-    end
-    
-    HF1 --> EC1
-    HF2 --> EC1
-    HF2 --> EC2
-    HF3 --> EC3
-    MC1 --> EC2
-    HF2 --> MC2
-    
-    style HF1 fill:#e1f5ff
-    style EC1 fill:#fff4e1
-    style MC1 fill:#e1ffe1
-```
+---
 
-### Services et Endpoints
+## MLflow pour le cycle de vie des modèles
 
-- **[API Production](https://sdacelo-real-time-fraud-detection.hf.space/)** - Endpoint principal
-- **[MLflow UI](https://mlflai-mlflow.hf.space/#/models)** - Interface MLflow
-- **[Producer](https://huggingface.co/spaces/jefraudai/Producer)** - Service Producer
-- **[Consumer](https://huggingface.co/spaces/jefraudai/consumer)** - Service Consumer
-- **[Kafka](https://cloud.redpanda.com/clusters/d8c0ur6uk85ifvcgnlrg/topics/real-time-payments/)** - Cluster Redpanda
-- **[Dashboard Grafana](https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598?from=2023-12-04T13:55:58.556Z&to=2028-12-03T13:55:58.556Z&timezone=browser)** - Grafana Dashboard
+- **Pourquoi** : centraliser la gestion du cycle de vie des modèles de Machine Learning via un système de tracking et de registry.
+- **Rôle de MLflow** :
+    - Tracking des expériences (metrics, paramètres, tags)
+    - Versioning des modèles
+    - Gestion des stages (Staging / Production)
+    - Promotion contrôlée des modèles
+- **Architecture associée** :
+    - **Backend store** : PostgreSQL (ex : NeonDB) pour metadata (runs, metrics, registry)
+    - **Artifact store** : stockage objet (S3 / Supabase Storage) pour les modèles et fichiers
+- **Avantages** :
+    - Traçabilité complète des expérimentations ML
+    - Reproductibilité des modèles
+    - Gouvernance du cycle de vie des modèles
+- **Alternative écartée** :
+    - Stockage manuel des modèles → absence de versioning, manque de traçabilité, risque d’erreur en production
+
+<div style="page-break-before: always;"></div>
+
+## Base de données PostgreSQL (NeonDB)
+
+- **Pourquoi** : stocker les résultats de scoring et assurer la persistance des décisions de fraude.
+- **Avantages** :
+    - Respect des propriétés ACID (cohérence des données critiques)
+    - Requêtes SQL pour analyse et audit
+    - Solution cloud-managed (NeonDB) facilitant la scalabilité
+    - Adapté aux données structurées et historisées
+- **Alternative écartée** :
+    - NoSQL → non nécessaire ici, complexité inutile pour des données transactionnelles structurées
+
+---
+
+## Déploiement avec Hugging Face Spaces
+
+- **Pourquoi** : déploiement rapide et accessible de services Python ML (API de scoring, prototypes).
+- **Avantages** :
+    - Mise en production rapide (low DevOps overhead)
+    - Support Python natif
+    - Gratuit pour un simple POC
+- **Limites** :
+    - Moins adapté aux workloads streaming intensifs ou haute performance
+    - Scalabilité limitée comparée à une infrastructure cloud complète
+- **Alternative écartée** :
+    - AWS / GCP / Azure → plus puissant mais plus complexe et coûteux pour un simple POC
+
+---
+
+## Monitoring avec Grafana Cloud
+
+- **Pourquoi** : assurer la visibilité des performances du système et du modèle ML.
+- **Avantages** :
+    - Dashboards temps réel
+    - Alerting configurable (seuils, anomalies)
+    - Intégration native avec PostgreSQL et autres sources de données
+    - Centralisation des métriques système et métier
+- **Alternative écartée** :
+    - Dashboard custom → coût de développement élevé et maintenance complexe
+
+---
+
+## Service d’alerte email (Resend)
+
+- **Pourquoi** : envoyer des notifications en cas de fraude détectée ou d’anomalies critiques.
+- **Avantages** :
+    - API simple et moderne
+    - Bonne délivrabilité des emails
+    - Intégration facile avec architectures serverless et microservices
+- **Alternative écartée** :
+    - SMTP direct → configuration complexe, faible fiabilité, mauvaise scalabilité
+
+<div style="page-break-before: always;"></div>
+
+# Synthèse architecturale
+
+Cette architecture repose sur 5 principes fondamentaux :
+
+- **Event-driven architecture** (Kafka)
+- **Découplage via microservices**
+- **MLOps structuré (MLflow)**
+- **Stockage transactionnel fiable (PostgreSQL)**
+- **Observabilité et alerting en temps réel (Grafana + email)**
+
+---
+
+# Conclusion
+
+Cette architecture est adaptée à un système de :
+
+- détection de fraude temps réel
+- traitement scalable des transactions
+- cycle de vie ML industrialisé
+- monitoring et alerting en production
+
+Elle équilibre :
+
+- simplicité (POC / projet)
+- bonnes pratiques MLOps
+- et extensibilité vers un système enterprise

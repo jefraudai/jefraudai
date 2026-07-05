@@ -1,45 +1,5 @@
 # Automatic-Fraud-Detection - Documentation
 
-## 📋 Besoins
-
-Système de détection de fraude en temps réel utilisant l'IA pour analyser les transactions de paiement et alerter automatiquement en cas de suspicion.
-
-- Être averti en temps réel qu'une fraude est détectée
-- Une fois chaque matin, pouvoir vérifier tous les paiements et fraudes intervenus la veille.
-
-## 🏗️ Architecture Globale
-
-```mermaid
-graph TD
-    subgraph Source["Source"]
-        API[Payment API]
-    end
-    
-    subgraph Streaming["Streaming"]
-        KP[Kafka Producer]
-        KT[Kafka Topic<br/>real-time-payments]
-        KC[Fraud Consumer<br/>ML Prediction]
-    end
-    
-    subgraph ML_Storage["ML & Storage"]
-        ML[MLflow<br/>Model Registry]
-        PG[PostgreSQL<br/>Neon DB]
-    end
-    
-    subgraph Monitoring_Alerts["Monitoring & Alerts"]
-        GF[Grafana<br/>Dashboard]
-        EM[Email<br/>Resend]
-    end
-    
-    API --> KP
-    KP --> KT
-    KT --> KC
-    KC --> PG
-    KC --> ML
-    PG --> GF
-    KC --> EM
-```
-
 ## 🧠 Pipeline ML
 
 ```mermaid

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "slidev slides.md",
     "build": "slidev build slides.md --out dist"
   },
   "dependencies": {

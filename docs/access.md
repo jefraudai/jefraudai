@@ -6,7 +6,7 @@
 
 ## 📝 Documentation Markdown avec schemas Mermaid
 
-- **[Services/docsify/README.md](../Services/docsify/README.md)** - README du service docsify
+- **[Services/docsify/README.md](../Services/docsify/docs/README.md)** - README du service docsify
 - **[Services/slidev/slides.md](../Services/slidev/slides.md)** - Source des présentations Slidev
 
 ## 💻 Documentation en accès Local
