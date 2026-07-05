@@ -162,7 +162,7 @@ graph LR
 ### Machine Learning
 
 - **AutoML** : AutoGluon
-- **MLflow** : HF Spaces
+- **MLflow** : Hugging Face Space
   - **S3** : Supabase
   - **PostgreSQL** : Neon
 
@@ -186,9 +186,9 @@ graph LR
 
 ### Streaming Predictions
 
-- **Producer** : Hugging Face
+- **Producer** : Hugging Face Space
 - **Kafka Cluster** : Aiven
-- **Consumer** : Hugging Face
+- **Consumer** : Hugging Face Space
   - **PostgreSQL** : NeonDB
 
 </div>

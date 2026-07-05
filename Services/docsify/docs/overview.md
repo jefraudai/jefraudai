@@ -1,4 +1,4 @@
-# Automatic-Fraud-Detection - Documentation
+# Essentiels
 
 ## 🧠 Pipeline ML
 
