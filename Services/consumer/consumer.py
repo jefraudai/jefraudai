@@ -162,34 +162,97 @@ def send_alert_email(transaction: dict, score: float):
     merchant  = transaction.get("merchant", "N/A")
     city      = transaction.get("city", "N/A")
     state     = transaction.get("state", "N/A")
+    category  = transaction.get("category", "N/A")
 
     subject = f"[ALERTE FRAUDE] Transaction {trans_num}"
-    body = f"""
-    Une transaction suspecte a été détectée.
+    
+    # Déterminer le niveau de risque et la couleur
+    if score >= 0.9:
+        risk_level = "CRITIQUE"
+        risk_color = "#dc2626"  # rouge
+    elif score >= 0.7:
+        risk_level = "ÉLEVÉ"
+        risk_color = "#ea580c"  # orange
+    else:
+        risk_level = "MODÉRÉ"
+        risk_color = "#ca8a04"  # jaune
 
-    Transaction : {trans_num}
-    Montant     : ${amt}
-    Marchand    : {merchant}
-    Lieu        : {city}, {state}
-    Score fraude: {score:.4f}
-    Heure       : {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+    body_html = f"""
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+            .content {{ background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-radius: 0 0 8px 8px; }}
+            .alert-box {{ background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 4px; }}
+            .info-row {{ display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }}
+            .info-label {{ font-weight: bold; color: #6b7280; }}
+            .info-value {{ color: #1f2937; }}
+            .score-badge {{ display: inline-block; padding: 8px 16px; border-radius: 20px; color: white; font-weight: bold; font-size: 18px; }}
+            .footer {{ text-align: center; margin-top: 20px; color: #6b7280; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>⚠️ ALERTE FRAUDE</h1>
+                <p>Transaction suspecte détectée</p>
+            </div>
+            <div class="content">
+                <div class="alert-box">
+                    <strong>Niveau de risque :</strong>
+                    <span class="score-badge" style="background: {risk_color};">{risk_level}</span>
+                </div>
+                
+                <h2>Détails de la transaction</h2>
+                
+                <div class="info-row">
+                    <span class="info-label">Transaction ID</span>
+                    <span class="info-value">{trans_num}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Montant</span>
+                    <span class="info-value">${amt:,.2f}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Marchand</span>
+                    <span class="info-value">{merchant}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Catégorie</span>
+                    <span class="info-value">{category}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Lieu</span>
+                    <span class="info-value">{city}, {state}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Score fraude</span>
+                    <span class="info-value" style="color: {risk_color}; font-weight: bold;">{score:.2%}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Date/Heure</span>
+                    <span class="info-value">{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</span>
+                </div>
+                
+                <div class="footer">
+                    <p>Ce message a été généré automatiquement par le système de détection de fraude.</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
     """
 
-    msg = MIMEMultipart()
-    msg["From"]    = SMTP_USER
-    msg["To"]      = ALERT_TO
-    msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
-
-    
     try:
         from resend_client import ResendClient
         client = ResendClient()
         result = client.send_email(
-            from_email=msg["From"],
-            to=msg["To"],
-            subject=msg["Subject"],
-            html=msg.as_string(),
+            from_email=SMTP_USER,
+            to=ALERT_TO,
+            subject=subject,
+            html=body_html,
         )
         logger.info("E-mail envoyé avec succès!")
         logger.info(result)
