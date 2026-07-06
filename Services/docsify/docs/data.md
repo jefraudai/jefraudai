@@ -1,10 +1,6 @@
 # Schéma de Données
 
-## 📊 Vue d'ensemble du Schéma
-
 Le système utilise PostgreSQL comme base de données principale pour stocker les prédictions de fraude.
-
-## 🗄️ Schéma de Base de Données
 
 ## 📋 Structure des Tables
 

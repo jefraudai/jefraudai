@@ -30,7 +30,7 @@ graph TD
         PG[Predictions<span>&nbsp</span><br/>PostgreSQL]
     end
 
-    subgraph "Monitoring & Alerts"
+    subgraph "Monitoring"
         GF[Dashboard<br/>Grafana]
         EM[Email<br/>Resend<span>&nbsp</span>]
     end
