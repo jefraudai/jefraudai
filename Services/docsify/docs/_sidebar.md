@@ -3,7 +3,7 @@
   - [Vue d'ensemble](overview.md)
   
 - **Architecture**
-  - [Architecture Détaillée](architectures.md)
+  - [Architecture Détaillée](jefraudai/Services/docsify/docs/architectures.md)
   - [Schéma de Données](data.md)
   
 - **Pipeline ML**

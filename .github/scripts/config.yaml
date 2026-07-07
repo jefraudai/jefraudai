@@ -3,7 +3,6 @@ services:
   # Liste des services internes (HuggingFace Spaces)
   names:    
     - "jefraudai/docsify"
-    - "jefraudai/slidev"
     - "jefraudai/consumer"
     - "jefraudai/Producer"
   # Liste des satellites (HuggingFace Spaces)

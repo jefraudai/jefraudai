@@ -9,10 +9,6 @@
 - [Configuration](configuration.md)
 - [Déploiement](deployment.md)
 
-## 🌐 Autre documentation en ligne
-
-- **[Slidev Présentations](https://jefraudai-slidev.hf.space/)** - Slides de présentation
-
 # Accès aux services en ligne
 
 - **[Dashboard Grafana](https://jefraudai.grafana.net/public-dashboards/44a8ad6003bc4887880bfcfb8ebb6598)** - Dashboard de monitoring
